@@ -57,7 +57,7 @@ regardless of whether an asset exists at the path.
 New file `src/data/external-sites.ts` — the only place a tbmq.io URL is spelled.
 
 ```ts
-export const TBMQ_ORIGIN = import.meta.env.PUBLIC_TBMQ_SITE_URL || 'https://tbmq.io';
+export const TBMQ_ORIGIN = normalizeOrigin(import.meta.env.TBMQ_SITE_URL ?? 'https://tbmq.io');
 
 export function tbmqUrl(path = '/'): string;      // tbmqUrl('/product/')
 export function tbmqDocsUrl(slug = ''): string;   // tbmqDocsUrl('pe/installation/')
@@ -73,9 +73,12 @@ export const TBMQ_URLS = {
 
 `tbmqDocsUrl('installation/')` resolves to
 `https://tbmq.io/docs/mqtt-broker/installation/`. Call sites express intent
-(`tbmqDocsUrl('pe/installation/')`), never a URL string. The
-`PUBLIC_TBMQ_SITE_URL` override follows the repo's existing `PUBLIC_SITE_URL`
-convention so a staging build can target a preview deploy.
+(`tbmqDocsUrl('pe/installation/')`), never a URL string.
+
+The `TBMQ_SITE_URL` override follows the `IOT_HUB_API_URL` precedent in
+`src/models/iot-hub.ts` — build-time `import.meta.env` with a literal fallback,
+no `PUBLIC_` prefix, because every URL this module produces is baked into HTML at
+build time (the one client-side consumer receives it through `define:vars`).
 
 Both helpers normalise slashes so callers may pass a slug with or without
 leading/trailing `/`. `TBMQ_ORIGIN` never carries a trailing slash.
@@ -96,7 +99,25 @@ change in this file.
 | 3 | `src/data/installations.ts` (TBMQ block, ~L611–760) | 18 URLs through the helpers: 2 in the HTML description, 2 of 3 buttons (Live Demo already external), 6 feature links, 8 deploy cards. The TBMQ panel itself stays on thingsboard.io |
 | 4 | `src/components/VersionSwitcher.astro` | add `externalUrl?: string` to the `Family` interface; the MQTT Broker family gets `externalUrl: TBMQ_URLS.docs`; the product popover row uses it with `target`/`rel` and an outbound affordance |
 | 7 | `src/components/Pricing/ProductTabs.astro` | tab entries gain an optional `href`; a tab with `href` renders an `<a>` instead of a `<button>`. TBMQ → `TBMQ_URLS.pricing` |
-| 7 | `src/pages/pricing/index.astro` | drop the `data-product-content="tbmq"` block, `tbmqSubTabs`, the three TBMQ calculator mounts, the now-unused imports, and `?product=tbmq` activation from the inline controller |
+| 7 | `src/pages/pricing/index.astro` | drop the `data-product-content="tbmq"` block, `tbmqSubTabs`, the three TBMQ calculator mounts, the now-unused imports, and every TBMQ branch of the inline controller; add the query-param bounce below |
+
+**Query-param deep links into the TBMQ pricing tab.** `/pricing/?section=tbmq-options`
+(optionally with `&product=tbmq-*`) is linked from 16 places: 9 TBMQ docs
+`_includes` files, 3 blog posts, 4 spots on the TBMQ product landing page. With
+the local TBMQ pricing content gone, those links would silently land on the
+ThingsBoard tab.
+
+Cloudflare Pages `_redirects` cannot match query strings, so the bounce happens
+in the existing pre-paint `is:inline` block in `pricing/index.astro`: when the
+resolver reads `section=tbmq-options` or a `product` starting with `tbmq`, it
+calls `location.replace(...)` to the tbmq.io pricing page instead of activating
+a local product. The URL is passed in with `define:vars={{ tbmqPricingUrl:
+TBMQ_URLS.pricing }}`, matching the pattern already used in `Tabs.astro`,
+`DemoRequestForm.astro` and `IotHubRuntimeConfig.astro`. Running pre-paint means
+no flash of the ThingsBoard tab before the bounce.
+
+This fixes all 16 deep links without editing 16 files, and survives phase 2
+unchanged.
 
 **VersionSwitcher constraint:** the TBMQ family's `editions` array must stay
 intact. `currentFamily` is derived by finding the family whose editions contain
@@ -119,8 +140,13 @@ does not leave the site while other surfaces stay local:
 
 - `src/data/homeEcosystem.ts` (~L25) — homepage ecosystem card → `TBMQ_URLS.product`
 - `src/pages/products/index.astro` (~L87) — products-ecosystem card → `TBMQ_URLS.product`
-- 7 posts under `src/content/blog/` linking `/docs/mqtt-broker/*` or
-  `/products/mqtt-broker/*` → absolute tbmq.io URLs
+
+**Blog posts are deliberately excluded.** All 8 TBMQ posts in
+`src/content/blog/` are already duplicated on tbmq.io, so in phase 2 they get
+deleted here and redirected there — editing their links now is wasted work.
+Worse, markdown link destinations cannot call a helper, so repointing them would
+mean 34 hardcoded `https://tbmq.io/...` strings in content, which is precisely
+what § A exists to prevent. The phase-2 splats cover them for free.
 
 ### D. Deferred to phase 2
 
@@ -134,10 +160,25 @@ time:
 /products/mqtt-broker/ → https://tbmq.io/product/ 301
 ```
 
-These belong in `DYNAMIC_REDIRECTS` in `src/data/redirects.ts` (46 of the
-100-rule Cloudflare dynamic budget currently used). They must **not** go in
+The three splats belong in `DYNAMIC_REDIRECTS` in `src/data/redirects.ts` (46 of
+the 100-rule Cloudflare dynamic budget currently used). They must **not** go in
 `NON_DOCS_REDIRECTS`, which `astro.redirects.ts` feeds to Astro's `redirects:`
 config — a splat there collides with the real content routes.
+
+The 8 TBMQ blog posts get one static rule each, in `NON_DOCS_REDIRECTS`:
+
+```
+/blog/<slug>/ → https://tbmq.io/blog/<slug>/ 301
+```
+
+for `1-million-reasons-to-choose-tbmq-as-high-performance-mqtt-broker`,
+`introducing-tbmq-professional-edition-the-mqtt-broker-for-enterprise-needs`,
+`new-thingsboard-tbmq-pricing-modular-add-ons-top-ups-and-total-cost-clarity`,
+`tbmq-1-3-0-release-websocket-client-advanced-mqtt-5-features-and-more`,
+`tbmq-2-0-migration-to-redis-mqtt-5-0-support-and-more`,
+`tbmq-2-1-new-chapter-in-mqtt-messaging-with-embedded-integrations`,
+`tbmq-2-2-strengthening-mqtt-security-with-jwt-and-client-blocking`,
+`tbmq-2-3-external-authentication-bulk-provisioning-and-enterprise-audit-trails`.
 
 ### E. Removal inventory
 
@@ -150,7 +191,8 @@ area with counts and line references:
 - **Marketing** — `src/pages/products/mqtt-broker/{index,privacy-policy,terms-of-use}.astro`; 3 entries in `src/pages/open-graph/_shared/marketing-meta.ts`; `src/data/tbmqNews.ts`; 37 assets (2.0 MB) in `src/assets/images/landings/mqtt-broker/`
 - **Pricing** — 3 data files, 4 FAQ files, 3 calculator components, 3 calculator scripts, plus the TBMQ sections in `src/pages/pricing/index.astro`
 - **Try it now** — the `mqtt-broker` product block in `src/data/installations.ts`
-- **Redirects** — existing TBMQ entries in `src/data/redirects.ts` (`SINGLE_REDIRECTS`, `CATCH_ALL_REDIRECTS`, `devFallbackRedirects` in `astro.redirects.ts`) to prune, plus the three phase-2 rules from § D verbatim
+- **Blog** — 8 TBMQ posts under `src/content/blog/`, all already live on tbmq.io (slugs listed in § D)
+- **Redirects** — existing TBMQ entries in `src/data/redirects.ts` (`SINGLE_REDIRECTS`, `CATCH_ALL_REDIRECTS`, `devFallbackRedirects` in `astro.redirects.ts`) to prune, plus every phase-2 rule from § D verbatim
 
 ## Error handling
 
