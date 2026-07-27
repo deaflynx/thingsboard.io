@@ -1,10 +1,21 @@
-# TBMQ → tbmq.io Link Migration (Phase 1) Implementation Plan
+# TBMQ → tbmq.io Link Migration — Pass 1 (Entry Points) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Point every thingsboard.io entry point that leads to TBMQ (product page, docs, pricing, Try it now, docs product selector) at tbmq.io, routed through a single URL module so no tbmq.io URL is ever spelled twice.
+**Goal:** Point four thingsboard.io entry points that lead to TBMQ — the Products menu, the Docs menu, the docs left-panel product selector, and the Try it now TBMQ panel — at tbmq.io, routed through a single URL module so no tbmq.io URL is ever spelled twice.
 
-**Architecture:** One new module, `src/data/external-sites.ts`, owns the tbmq.io origin and two URL builders. Every call site imports from it. Five surfaces change: the two mega-menu items (through the shared `SubMenuLink.astro`), the docs product selector's `FAMILIES` array, the Try it now TBMQ panel's 18 links, and the pricing product toggle (which also grows a pre-paint bounce for the 16 existing `?section=tbmq-options` deep links). TBMQ docs stay live on thingsboard.io — deletion and the cross-site edge redirects are phase 2, captured in a removal inventory document.
+**Architecture:** One new module, `src/data/external-sites.ts`, owns the tbmq.io origin and two URL builders. Every call site imports from it. Four surfaces change: the two mega-menu items (through the shared `SubMenuLink.astro`), the docs product selector's `FAMILIES` array, and the Try it now TBMQ panel's 18 links. TBMQ docs stay live and fully reachable on thingsboard.io — deletion and the cross-site edge redirects are later work, captured in a removal inventory document.
+
+**Explicitly out of scope** (deferred by the user on 2026-07-27, each awaiting its own go-ahead):
+
+| Deferred | Why it is not here |
+|---|---|
+| The pricing page TBMQ toggle | Left for a later decision. The page keeps its local TBMQ sections, sub-tabs, calculators and FAQ, and the 16 `?section=tbmq-options` deep links keep working. |
+| Homepage + `/products/` ecosystem cards | Not among the four requested surfaces. |
+| The `/docs/mqtt-broker/*` edge redirect | Would take TBMQ docs offline in production the moment it deploys. It also drags 27 chaining `SINGLE_REDIRECTS` and 4 `CATCH_ALL_REDIRECTS` groups with it — all documented in Task 7's inventory. |
+| Blog posts, TBMQ docs content, `_includes` | Content edits; covered by the redirect when it lands. |
+
+Do not implement any deferred row, even if it looks like a natural extension of a task you are on. Flag it and move on.
 
 **Tech Stack:** Astro 6 + Starlight, TypeScript, SCSS, pnpm.
 
@@ -47,7 +58,7 @@ Steps below give you the exact commands and the exact expected output. A step th
   - `TBMQ_ORIGIN: string` — e.g. `'https://tbmq.io'`, never a trailing slash
   - `tbmqUrl(path?: string): string` — absolute URL for a tbmq.io path
   - `tbmqDocsUrl(slug?: string): string` — absolute URL under tbmq.io's TBMQ docs root
-  - `TBMQ_URLS` — readonly object with keys `product`, `docs`, `pricing`, `installations`, `liveDemo`, all `string`
+  - `TBMQ_URLS` — readonly object with keys `product`, `docs`, `liveDemo`, all `string`
 
 - [ ] **Step 1: Write the module**
 
@@ -64,9 +75,7 @@ Create `src/data/external-sites.ts`:
  *
  * `TBMQ_SITE_URL` mirrors the `IOT_HUB_API_URL` pattern in `src/models/iot-hub.ts`:
  * build-time `import.meta.env` with a literal fallback, no `PUBLIC_` prefix,
- * because every URL produced here is baked into HTML at build time. The one
- * client-side consumer (the pricing deep-link bounce) receives its value
- * through Astro `define:vars`.
+ * because every URL produced here is baked into HTML at build time.
  */
 
 const normalizeOrigin = (origin: string): string => origin.replace(/\/+$/, '');
@@ -103,12 +112,14 @@ export function tbmqDocsUrl(slug = ''): string {
 	return `${TBMQ_ORIGIN}${TBMQ_DOCS_ROOT}${path}${query ? `?${query}` : ''}`;
 }
 
-/** Named tbmq.io entry points. Prefer these over spelling a path at a call site. */
+/**
+ * Named tbmq.io entry points. Prefer these over spelling a path at a call site.
+ * Add a key when a surface needs it — `/pricing/` and `/installations/` are
+ * deliberately absent until the pricing migration is approved.
+ */
 export const TBMQ_URLS = {
 	product: tbmqUrl('/product/'),
 	docs: tbmqUrl('/docs/'),
-	pricing: tbmqUrl('/pricing/'),
-	installations: tbmqUrl('/installations/'),
 	liveDemo: 'https://demo.tbmq.io/signup',
 } as const;
 ```
@@ -128,12 +139,12 @@ If `import.meta.env.TBMQ_SITE_URL` produces a TS error about an unknown env key,
 The module can't be imported by bare `node` (`import.meta.env` is Vite-injected). Assert on the source instead — the shapes are simple enough that the type checker plus these greps are the real coverage:
 
 ```bash
-grep -n "TBMQ_ORIGIN\|TBMQ_DOCS_ROOT = \|product:\|docs:\|pricing:\|installations:\|liveDemo:" src/data/external-sites.ts
+grep -n "TBMQ_ORIGIN\|TBMQ_DOCS_ROOT = \|product:\|docs:\|liveDemo:" src/data/external-sites.ts
 ```
 
-Expected: `TBMQ_ORIGIN` defined once from `import.meta.env.TBMQ_SITE_URL`, `TBMQ_DOCS_ROOT = '/docs/mqtt-broker/'`, and all five `TBMQ_URLS` keys present.
+Expected: `TBMQ_ORIGIN` defined once from `import.meta.env.TBMQ_SITE_URL`, `TBMQ_DOCS_ROOT = '/docs/mqtt-broker/'`, and all three `TBMQ_URLS` keys present.
 
-Task 12 asserts the actual resolved strings against built HTML.
+Task 9 asserts the actual resolved strings against built HTML.
 
 - [ ] **Step 4: Format and commit**
 
@@ -338,7 +349,7 @@ git commit -m "feat(nav): point TBMQ menu items at tbmq.io"
 - Consumes: `TBMQ_URLS` from Task 1.
 - Produces: `Family.externalUrl?: string`.
 
-**Critical constraint — do not remove the TBMQ `editions` array.** `currentFamily` is derived as `FAMILIES.find((f) => f.editions.some((e) => e.product === currentProduct))`. TBMQ docs are still present in phase 1, so a visitor can be *on* a TBMQ docs page; emptying `editions` makes `currentFamily` `undefined` and the non-null assertion on the following line throws at build time for all 174 TBMQ pages. Only the popover link is overridden.
+**Critical constraint — do not remove the TBMQ `editions` array.** `currentFamily` is derived as `FAMILIES.find((f) => f.editions.some((e) => e.product === currentProduct))`. TBMQ docs are still present, so a visitor can be *on* a TBMQ docs page; emptying `editions` makes `currentFamily` `undefined` and the non-null assertion on the following line throws at build time for all 174 TBMQ pages. Only the popover link is overridden.
 
 - [ ] **Step 1: Add the import**
 
@@ -642,364 +653,13 @@ git commit -m "feat(installations): point Try it now TBMQ links at tbmq.io"
 
 ---
 
-### Task 6: Pricing product toggle becomes a link (spec item 7, part 1)
-
-**Files:**
-- Modify: `src/components/Pricing/ProductTabs.astro`
-
-**Interfaces:**
-- Consumes: `TBMQ_URLS` from Task 1.
-- Produces: a `ProductTabs` tab entry may carry `href?: string`; when present the tab renders `<a>` rather than `<button>`. Task 7 relies on the TBMQ tab no longer being a `.product-tab` click target that switches local state.
-
-- [ ] **Step 1: Add the import and the href**
-
-The frontmatter currently reads:
-
-```ts
-import tbIconRaw from '../../assets/pricing/thingsboard-icon.svg?raw';
-import tbmqIconRaw from '../../assets/pricing/tbmq-icon.svg?raw';
-
-const tabs = [
-	{ id: 'thingsboard', label: 'ThingsBoard', icon: tbIconRaw, gtmId: 'Pricing_PE' },
-	{ id: 'tbmq', label: 'TBMQ', icon: tbmqIconRaw, gtmId: 'Pricing_TBMQ' },
-];
-```
-
-Replace with:
-
-```ts
-import { TBMQ_URLS } from '@data/external-sites';
-import tbIconRaw from '../../assets/pricing/thingsboard-icon.svg?raw';
-import tbmqIconRaw from '../../assets/pricing/tbmq-icon.svg?raw';
-
-const tabs: {
-	id: string;
-	label: string;
-	icon: string;
-	gtmId: string;
-	/** Set for a product that lives on another site — renders an anchor, not a state toggle. */
-	href?: string;
-}[] = [
-	{ id: 'thingsboard', label: 'ThingsBoard', icon: tbIconRaw, gtmId: 'Pricing_PE' },
-	{ id: 'tbmq', label: 'TBMQ', icon: tbmqIconRaw, gtmId: 'Pricing_TBMQ', href: TBMQ_URLS.pricing },
-];
-```
-
-The relative `../../assets/...` imports stay as they are — they are pre-existing and `@root/assets/...` churn is out of scope.
-
-- [ ] **Step 2: Render an anchor for tabs with an href**
-
-The markup currently reads:
-
-```astro
-<nav class="segment-tabs segment-tabs--product" aria-label="Product selection">
-	{tabs.map((tab) => (
-		<button
-			type="button"
-			id={tab.gtmId}
-			class={`product-tab segment-tab gtm_button ${tab.id === 'thingsboard' ? 'active' : ''}`}
-			data-product={tab.id}
-		>
-			<span class="segment-tab-icon segment-tab-icon--product" set:html={tab.icon} />
-			{tab.label}
-		</button>
-	))}
-</nav>
-```
-
-Replace with:
-
-```astro
-<nav class="segment-tabs segment-tabs--product" aria-label="Product selection">
-	{tabs.map((tab) =>
-		tab.href ? (
-			<a
-				id={tab.gtmId}
-				class="segment-tab gtm_button"
-				href={tab.href}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<span class="segment-tab-icon segment-tab-icon--product" set:html={tab.icon} />
-				{tab.label}
-			</a>
-		) : (
-			<button
-				type="button"
-				id={tab.gtmId}
-				class={`product-tab segment-tab gtm_button ${tab.id === 'thingsboard' ? 'active' : ''}`}
-				data-product={tab.id}
-			>
-				<span class="segment-tab-icon segment-tab-icon--product" set:html={tab.icon} />
-				{tab.label}
-			</button>
-		)
-	)}
-</nav>
-```
-
-Two deliberate differences on the anchor: **no `product-tab` class** (that class is the click-delegation hook for local product switching — an outbound link must not match it) and **no `data-product`** (nothing local to activate).
-
-- [ ] **Step 3: Style the anchor like a tab**
-
-`.segment-tab` styling currently assumes a `<button>`. Anchors bring browser defaults a button doesn't have. In the `<style lang="scss" is:global>` block, find the `.segment-tab {` rule and add these three properties to it (the rule already sets `color`, so put them next to it):
-
-```scss
-		text-decoration: none;
-		-webkit-tap-highlight-color: transparent;
-		text-align: center;
-```
-
-`-webkit-tap-highlight-color` may already be present in that rule — check first and don't duplicate it.
-
-- [ ] **Step 4: Type-check and lint**
-
-```bash
-pnpm check && pnpm lint:eslint
-```
-
-Expected: both PASS.
-
-- [ ] **Step 5: Verify the anchor is not a local switch target**
-
-```bash
-grep -n "product-tab\|data-product=" src/components/Pricing/ProductTabs.astro
-```
-
-Expected: exactly one line carrying `product-tab` and one carrying `data-product=`, both inside the `<button>` branch. If either appears in the `<a>` branch, the outbound tab will also try to switch local state.
-
-- [ ] **Step 6: Format and commit**
-
-```bash
-pnpm exec prettier -w src/components/Pricing/ProductTabs.astro
-git add src/components/Pricing/ProductTabs.astro
-git commit -m "feat(pricing): render TBMQ product tab as a link to tbmq.io"
-```
-
----
-
-### Task 7: Remove local TBMQ pricing sections and bounce deep links (spec item 7, part 2)
-
-**Files:**
-- Modify: `src/pages/pricing/index.astro`
-
-**Interfaces:**
-- Consumes: `TBMQ_URLS` from Task 1; the anchor tab from Task 6.
-- Produces: nothing new.
-
-**Do not delete any file.** `src/data/pricing/tbmq-*.ts`, `src/data/pricing/faq/tbmq-*.ts`, `src/components/Pricing/Tbmq*Calculator.astro` and `src/scripts/pricing/calc-tbmq-*.ts` all stay on disk — Task 10 records them for the phase-2 sweep. This task only stops the page from rendering and wiring them.
-
-- [ ] **Step 1: Add the import**
-
-In the frontmatter of `src/pages/pricing/index.astro`:
-
-```ts
-import { TBMQ_URLS } from '@data/external-sites';
-```
-
-- [ ] **Step 2: Delete the TBMQ product content block**
-
-Remove the entire element that opens with:
-
-```astro
-		<!-- ═══ TBMQ product sections ═══ -->
-		<div class="pricing-product-content" data-product-content="tbmq" style="display:none;">
-```
-
-through its matching `</div>`. That span covers `<ProductSubTabs product="tbmq" … />`, the `tbmq-ce` section, the `tbmq-pe` section (header row, `BillingToggle`, `TbmqPaygCalculator`, `TbmqPerpetualCalculator`, `PerpetualBenefits`, the perpetual bottom CTA) and the `tbmq-private-cloud` section (`TbmqPrivateCloudCalculator` plus the `See full details` CTA pointing at `/docs/mqtt-broker/pe/subscription/`).
-
-Leave the ThingsBoard block (`data-product-content="thingsboard"`) and everything after the TBMQ block completely untouched.
-
-- [ ] **Step 3: Delete `tbmqSubTabs`**
-
-Remove the whole `const tbmqSubTabs = enrichTabs([...]);` declaration (the three entries `tbmq-ce`, `tbmq-pe`, `tbmq-private-cloud`). Keep `tbSubTabs` and `enrichTabs` themselves.
-
-- [ ] **Step 4: Add the pre-paint bounce**
-
-In the `<script is:inline>` block that defines `window.__resolvePricingState`, the opening tag becomes:
-
-```astro
-		<script is:inline define:vars={{ tbmqPricingUrl: TBMQ_URLS.pricing }}>
-```
-
-Inside `window.__resolvePricingState`, the `sectionMap` currently reads:
-
-```js
-					const sectionMap = {
-						'thingsboard-pe-options': { product: 'thingsboard', subtab: 'thingsboard-pe' },
-						'tbmq-options': { product: 'tbmq' },
-					};
-```
-
-Replace it with the ThingsBoard-only map, and add the bounce immediately above it:
-
-```js
-					// TBMQ pricing lives on tbmq.io now. 16 pages still deep-link
-					// `?section=tbmq-options` / `?product=tbmq-*` here; Cloudflare
-					// `_redirects` can't match query strings, so bounce in-page. This
-					// runs pre-paint, so the ThingsBoard tab never flashes first.
-					if (sectionParam === 'tbmq-options' || (productParam && productParam.startsWith('tbmq'))) {
-						window.location.replace(tbmqPricingUrl);
-						return { activeProduct: 'thingsboard', activeSubTab: null, activeBilling: null };
-					}
-					const sectionMap = {
-						'thingsboard-pe-options': { product: 'thingsboard', subtab: 'thingsboard-pe' },
-					};
-```
-
-`sectionParam`, `productParam` and `solutionParam` are already read above this point in the function — do not re-declare them. The returned object must keep the same shape the rest of the resolver produces, because `initPricing()` calls the same function and destructures the result even though the navigation is already underway.
-
-- [ ] **Step 5: Drop the TBMQ branch from `updateUrl()`**
-
-The function currently reads:
-
-```js
-			const p = new URLSearchParams();
-			if (activeProduct === 'tbmq') {
-				p.set('section', 'tbmq-options');
-			} else {
-				p.set('section', 'thingsboard-pe-options');
-			}
-```
-
-`activeProduct` can no longer become `'tbmq'` — the tab is an anchor and the resolver bounces. Simplify:
-
-```js
-			const p = new URLSearchParams();
-			p.set('section', 'thingsboard-pe-options');
-```
-
-- [ ] **Step 6: Remove now-unused imports and references**
-
-Delete these three imports:
-
-```ts
-import { tbmqCeData } from '@data/pricing/tbmq-ce.ts';
-import { tbmqSelfManagedData } from '@data/pricing/tbmq-self-managed.ts';
-import { tbmqPrivateCloudData } from '@data/pricing/tbmq-private-cloud.ts';
-```
-
-Also delete the imports of `TbmqPaygCalculator`, `TbmqPerpetualCalculator` and `TbmqPrivateCloudCalculator` — grep for them; they are in the same import block. Do **not** delete `ceIcon`, `smIcon`, `pcIcon`, `BillingToggle`, `CommunityEditionCard`, `PerpetualBenefits`, `NButton` or `ProductSubTabs`: the ThingsBoard sections still use every one of them. Verify each with a grep before removing anything.
-
-Then search the rest of the file for `tbmq` and resolve each remaining hit:
-
-```bash
-grep -n "tbmq\|Tbmq\|TBMQ" src/pages/pricing/index.astro
-```
-
-Expected remaining hits after this task: only `TBMQ_URLS` (the import and the `define:vars`), plus any hit inside `faqContextMap` / `pricingFaqData` wiring. **Leave the FAQ wiring alone** — `pricingFaqData` is a single array covering both products, `faqAnswerMap` is built from all of it, and the TBMQ FAQ entries render in the shared FAQ section. Removing them is phase-2 work and would change the ThingsBoard FAQ output. If you find a `faqAnswerMap.get('tbmq-…')` call that was only used by the deleted `BillingToggle`, that call disappears with the markup — that is expected, not something to chase further.
-
-- [ ] **Step 7: Type-check and lint**
-
-```bash
-pnpm check && pnpm lint:eslint
-```
-
-Expected: both PASS. Unused-import errors here are the point of Step 6 — fix them by removing the import, never by adding an eslint-disable.
-
-- [ ] **Step 8: Verify the block is gone and the bounce is in**
-
-```bash
-grep -n "data-product-content" src/pages/pricing/index.astro
-```
-
-Expected: exactly two hits — the `thingsboard` div, and the `querySelector` in the controller. No `data-product-content="tbmq"`.
-
-```bash
-grep -n "tbmq-options\|tbmqPricingUrl" src/pages/pricing/index.astro
-```
-
-Expected: the bounce condition and `window.location.replace(tbmqPricingUrl)` and the `define:vars` — and **no** `sectionMap` entry, **no** `p.set('section', 'tbmq-options')`.
-
-- [ ] **Step 9: Format and commit**
-
-```bash
-pnpm exec prettier -w src/pages/pricing/index.astro
-git add src/pages/pricing/index.astro
-git commit -m "feat(pricing): send TBMQ pricing traffic to tbmq.io"
-```
-
----
-
-### Task 8: Homepage and products-index ecosystem cards (spec § C)
-
-**Files:**
-- Modify: `src/data/homeEcosystem.ts` (~L20–26)
-- Modify: `src/pages/products/index.astro` (~L86–94)
-
-**Interfaces:**
-- Consumes: `TBMQ_URLS` from Task 1.
-- Produces: nothing new.
-
-Both cards are marketing entry points to the TBMQ product page. Repointing them keeps the header and the page body consistent.
-
-Neither card component supports `target`/`rel`, and adding that plumbing to two more components is out of proportion for this task — these links leave the site in the same tab, which is acceptable for a body card (unlike a menu item, where a new tab preserves the reader's place). Note it and move on.
-
-- [ ] **Step 1: Repoint the homepage card**
-
-In `src/data/homeEcosystem.ts`, add the import:
-
-```ts
-import { TBMQ_URLS } from '@data/external-sites';
-```
-
-Then change the MQTT Broker entry's `href: '/products/mqtt-broker/',` to:
-
-```ts
-		href: TBMQ_URLS.product,
-```
-
-Leave `name`, `description` and `icon` untouched.
-
-- [ ] **Step 2: Repoint the products-index card**
-
-In `src/pages/products/index.astro`, add to the frontmatter imports:
-
-```ts
-import { TBMQ_URLS } from '@data/external-sites';
-```
-
-Then change the TBMQ card's `href: '/products/mqtt-broker/',` to:
-
-```ts
-		href: TBMQ_URLS.product,
-```
-
-Leave `icon`, `alt`, `title`, `desc`, `cls` and `color` untouched.
-
-- [ ] **Step 3: Verify**
-
-```bash
-grep -n "products/mqtt-broker" src/data/homeEcosystem.ts src/pages/products/index.astro
-```
-
-Expected: **no output.**
-
-- [ ] **Step 4: Type-check and lint**
-
-```bash
-pnpm check && pnpm lint:eslint
-```
-
-Expected: both PASS.
-
-- [ ] **Step 5: Format and commit**
-
-```bash
-pnpm exec prettier -w src/data/homeEcosystem.ts src/pages/products/index.astro
-git add src/data/homeEcosystem.ts src/pages/products/index.astro
-git commit -m "feat(marketing): point TBMQ ecosystem cards at tbmq.io"
-```
-
----
-
-### Task 9: Repo-wide hardcoded-URL audit
+### Task 6: Repo-wide hardcoded-URL audit
 
 **Files:** none modified unless a violation is found.
 
 **Interfaces:**
-- Consumes: everything from Tasks 1–8.
-- Produces: a clean invariant that Task 12 re-checks against built output.
+- Consumes: everything from Tasks 1–5.
+- Produces: a clean invariant that Task 9 re-checks against built output.
 
 This is the Global Constraints check, run once while the changes are fresh.
 
@@ -1019,37 +679,48 @@ Any other hit is a Global Constraints violation: replace it with a helper call f
 git diff --stat main...HEAD -- src/content/ | tail -3
 ```
 
-Expected: **no output** — phase 1 edits no content file. TBMQ docs, `_includes` and blog posts are all phase-2 work per the spec.
+Expected: **no output** — this phase edits no content file. TBMQ docs, `_includes` and blog posts are all later work.
 
 ```bash
 git diff --name-only main...HEAD | sort
 ```
 
-Expected exactly:
+Expected exactly — five source files and the two planning documents:
 
 ```
 docs/superpowers/plans/2026-07-27-tbmq-io-link-migration.md
 docs/superpowers/specs/2026-07-27-tbmq-io-link-migration-design.md
+docs/tbmq-migration/removal-inventory.md
 src/components/Landing/SubMenuLink.astro
-src/components/Pricing/ProductTabs.astro
 src/components/VersionSwitcher.astro
 src/data/external-sites.ts
-src/data/homeEcosystem.ts
 src/data/installations.ts
 src/data/navigation.ts
-src/pages/pricing/index.astro
-src/pages/products/index.astro
 ```
 
 If `main` is not the right base, use the branch point: `git merge-base HEAD main`.
 
-- [ ] **Step 3: No commit**
+- [ ] **Step 3: Confirm no deferred surface was touched**
+
+```bash
+git diff --name-only main...HEAD | grep -E "pricing|homeEcosystem|products/index|redirects" || echo "clean"
+```
+
+Expected: `clean`. A hit means a deferred row from the header table was implemented — revert that file. The pricing page, the two ecosystem cards and `src/data/redirects.ts` are all awaiting separate go-aheads.
+
+```bash
+git diff main...HEAD -- src/data/redirects.ts public/_redirects public/redirects.json | wc -l
+```
+
+Expected: `0`. No redirect work belongs in this phase.
+
+- [ ] **Step 4: No commit**
 
 Nothing changed. If Step 1 or 2 found a violation, fix it, then commit with `fix(tbmq): route <file> through the URL module` and re-run both steps.
 
 ---
 
-### Task 10: Removal inventory document (spec item 5)
+### Task 7: Removal inventory document (spec item 5)
 
 **Files:**
 - Create: `docs/tbmq-migration/removal-inventory.md`
@@ -1077,24 +748,40 @@ grep -rl "docs/mqtt-broker" src/content/ | wc -l                                
 Create `docs/tbmq-migration/removal-inventory.md` with these sections. Use real paths and the line numbers you verify with `grep -n` at write time — do not copy a line number without checking it.
 
 ````markdown
-# TBMQ removal inventory (phase 2)
+# TBMQ removal inventory
 
-TBMQ moved to tbmq.io. Phase 1 (see
-`docs/superpowers/specs/2026-07-27-tbmq-io-link-migration-design.md`) repointed the
-entry points. This is the checklist for phase 2: delete the TBMQ content that
-still lives here and replace it with cross-site redirects.
+TBMQ moved to tbmq.io. The first pass (see
+`docs/superpowers/specs/2026-07-27-tbmq-io-link-migration-design.md`) repointed four
+entry points: the Products menu, the Docs menu, the docs left-panel product
+selector, and the Try it now TBMQ panel. Everything below is still live on
+thingsboard.io and still awaiting a decision.
 
 Counts measured 2026-07-27 on branch `tbmq-migration`.
 
-## Order of operations
+## Still live, awaiting a go-ahead
 
-1. Add the redirects (§ Redirects) — they must be live before the content goes,
-   so no request ever lands on a deleted page.
+Each of these is independently approvable — none blocks the others:
+
+| | What | Where in this document |
+|---|---|---|
+| A | The `/docs/mqtt-broker/*` cutover redirect | § Redirects |
+| B | Pricing page TBMQ toggle | § Pricing |
+| C | Homepage + `/products/` ecosystem cards | § Marketing |
+| D | Delete the TBMQ docs, marketing pages, blog posts and assets | § Docs content, § Marketing, § Blog |
+
+**A and D are ordered:** the redirect must deploy *before* the deletion, so no
+request ever lands on a page that is already gone. **B and C are independent** of
+both and can ship at any time.
+
+## Order of operations for the full sweep (A + D)
+
+1. Add the redirects (§ Redirects) — including the chain prune, which is not
+   optional; skip it and `pnpm lint:redirects` fails.
 2. Delete content (§ Docs content, § Marketing, § Blog).
 3. Remove the plumbing (§ Sidebar, § Product plumbing) — this is what makes
    `pnpm check` fail if a reference was missed.
-4. Delete the unreferenced data (§ Pricing, § Try it now).
-5. `pnpm generate:redirects`, then `pnpm check && pnpm lint:eslint && pnpm lint:slugcheck && pnpm lint:linkcheck`.
+4. Delete the data files (§ Pricing, § Try it now).
+5. `pnpm generate:redirects`, then `pnpm check && pnpm lint:eslint && pnpm lint:slugcheck && pnpm lint:redirects && pnpm lint:linkcheck`.
 
 ## Docs content
 
@@ -1143,31 +830,118 @@ redirected there:
 - `tbmq-2-2-strengthening-mqtt-security-with-jwt-and-client-blocking.mdx`
 - `tbmq-2-3-external-authentication-bulk-provisioning-and-enterprise-audit-trails.mdx`
 
-## Pricing
+## Pricing — item B, fully live, no decision made
 
-Unreferenced since phase 1 — the page stopped rendering them:
+Nothing here has been touched. `/pricing/` still renders its TBMQ tab, its three
+sub-tabs (`tbmq-ce`, `tbmq-pe`, `tbmq-private-cloud`), all three calculators and
+the TBMQ FAQ set, and all 16 `?section=tbmq-options` deep links still resolve
+locally.
 
+Files in play when the decision comes:
+
+- `src/pages/pricing/index.astro` — the `data-product-content="tbmq"` block, `tbmqSubTabs`, and the `'tbmq-options'` entry in `sectionMap` inside the pre-paint `is:inline` resolver
+- `src/components/Pricing/ProductTabs.astro` — the `tbmq` tab entry
 - `src/data/pricing/tbmq-ce.ts`, `tbmq-self-managed.ts`, `tbmq-private-cloud.ts`
 - `src/data/pricing/faq/tbmq-ce.ts`, `tbmq-self-managed-payg.ts`, `tbmq-self-managed-perp.ts`, `tbmq-private-cloud.ts` (and their registration in `src/data/pricing/faq/index.ts`)
 - `src/components/Pricing/TbmqPaygCalculator.astro`, `TbmqPerpetualCalculator.astro`, `TbmqPrivateCloudCalculator.astro`
 - `src/scripts/pricing/calc-tbmq-payg.ts`, `calc-tbmq-pc.ts`, `calc-tbmq-perp.ts`
-- `src/assets/pricing/tbmq-icon.svg` — still used by the outbound tab in `ProductTabs.astro`; keep it unless that tab is also removed
-- the pre-paint bounce in `src/pages/pricing/index.astro` — keep it, it is what makes the 16 legacy deep links work
+- `src/assets/pricing/tbmq-icon.svg`
+- 18 local TBMQ links inside `src/data/pricing/tbmq-ce.ts` and the four `faq/tbmq-*.ts` files
+
+**Two things to know before deciding.**
+
+First, if item A (the docs redirect) ships before this, the pricing question
+partly answers itself: 9 of the 16 `?section=tbmq-options` deep links live in
+TBMQ docs `_includes`, whose pages would 301 away — so those links become
+unreachable and need no work.
+
+Second, `?section=tbmq-options` cannot be redirected at the edge. Cloudflare
+Pages `_redirects` does not match query strings. Whenever the local TBMQ pricing
+content goes, the remaining deep links need an in-page bounce instead: read the
+param in the existing pre-paint `is:inline` resolver in `pricing/index.astro` and
+`location.replace()` to tbmq.io, with the URL injected via
+`define:vars={{ tbmqPricingUrl: … }}` — the pattern already used by `Tabs.astro`,
+`DemoRequestForm.astro` and `IotHubRuntimeConfig.astro`. Pre-paint placement is
+what keeps the ThingsBoard tab from flashing first.
+
+## Marketing ecosystem cards — item C, fully live
+
+Two cards still point at the local `/products/mqtt-broker/` page:
+
+- `src/data/homeEcosystem.ts` — the homepage ecosystem card
+- `src/pages/products/index.astro` — the products-ecosystem card
+
+Both are one-line changes to `TBMQ_URLS.product`. Neither card component supports
+`target`/`rel`, so these would open in the same tab — acceptable for a body card,
+and not worth threading the plumbing through two more components.
 
 ## Try it now
 
 - the `mqtt-broker` product block in `src/data/installations.ts`, and its entry in `productTabs` at the bottom of that file
 - the TBMQ hero images it references under `src/assets/images/landings/mqtt-broker/`
 
-## Redirects
+## Redirects — item A, not yet added
+
+tbmq.io mirrors the docs tree 1:1 (`tbmq.io/docs/mqtt-broker/**`), so the whole
+cutover is prefix substitution. Nothing below exists in the repo yet.
+
+### The two splats
 
 Add to `DYNAMIC_REDIRECTS` in `src/data/redirects.ts` (46 of the 100-rule
-Cloudflare dynamic budget in use today):
+Cloudflare dynamic budget in use today, so this lands at 48):
 
 ```
 /docs/mqtt-broker/*    → https://tbmq.io/docs/mqtt-broker/:splat 301
 /docs/pe/mqtt-broker/* → https://tbmq.io/docs/mqtt-broker/pe/:splat 301
 ```
+
+They **must** go in `DYNAMIC_REDIRECTS`, not `NON_DOCS_REDIRECTS`:
+`astro.redirects.ts` feeds `NON_DOCS_REDIRECTS` to Astro's `redirects:` config,
+where a splat over `/docs/mqtt-broker/*` collides with the real content routes.
+Keeping them out of the Astro config also means `pnpm dev`, `pnpm preview` and
+`pnpm lint:linkcheck` still see the real TBMQ pages — the link checker stays
+green and the docs remain browsable locally.
+
+### The chain prune — not optional
+
+`src/data/redirects.ts` already holds **27 `SINGLE_REDIRECTS` whose targets sit
+under `/docs/mqtt-broker/`** (`/docs/mqtt-broker/api/ → /docs/mqtt-broker/rest-api/`,
+`…/faq/ → …/why-tbmq/`, and 25 more), plus **4 `CATCH_ALL_REDIRECTS` groups**:
+`mqtt-broker/install`, `mqtt-broker/pe/install`, `pe/mqtt-broker/install`,
+`pe/mqtt-broker`.
+
+Add the splats without touching them and every one becomes a redirect chain:
+`pnpm lint:redirects` fails, and real visitors pay two round-trips.
+
+Delete all 31. This is safe because **tbmq.io carries the identical legacy
+redirect table** — verified: `/docs/mqtt-broker/api/ → /docs/mqtt-broker/rest-api/`
+is present in their `public/_redirects` too. So the splat forwards the legacy
+shape across and tbmq.io resolves it on their side.
+
+Regenerate the counts before trusting these numbers:
+
+```bash
+node --experimental-transform-types -e "
+import('./src/data/redirects.ts').then(m => {
+  const t = s => (s ?? '').includes('mqtt-broker');
+  console.log('singles targeting /docs/mqtt-broker/:',
+    m.SINGLE_REDIRECTS.filter(e => e.target.startsWith('/docs/mqtt-broker/')).length);
+  console.log('catch-all groups touching mqtt-broker:',
+    m.CATCH_ALL_REDIRECTS.filter(g => t(g.oldPrefix) || t(g.newPrefix)).length);
+});
+"
+```
+
+Deleting the singles also drops them from `public/redirects.json`, which *is*
+spread into `astro.redirects.ts` — so those legacy URLs stop resolving in
+`pnpm dev` / `pnpm preview`. They are inbound-only Jekyll-era URLs and nothing in
+the repo links to them, but confirm with `pnpm lint:linkcheck` rather than
+assuming.
+
+Also prune the five `/docs/*/search/` entries in `devFallbackRedirects` in
+`astro.redirects.ts` that mention `mqtt-broker`.
+
+### Marketing and blog
 
 Add to `NON_DOCS_REDIRECTS`:
 
@@ -1176,19 +950,18 @@ Add to `NON_DOCS_REDIRECTS`:
 /blog/<each of the 8 slugs above>/ → https://tbmq.io/blog/<slug>/ 301
 ```
 
-Then prune the now-superseded TBMQ entries already in `src/data/redirects.ts`
-(`SINGLE_REDIRECTS`, `CATCH_ALL_REDIRECTS` — the `mqtt-broker/install`,
-`mqtt-broker/pe/install`, `pe/mqtt-broker/install` and `pe/mqtt-broker` groups)
-and the five `/docs/*/search/` entries in `devFallbackRedirects` in
-`astro.redirects.ts` that mention `mqtt-broker`.
-
-The splats **must** go in `DYNAMIC_REDIRECTS`, not `NON_DOCS_REDIRECTS`:
-`astro.redirects.ts` feeds `NON_DOCS_REDIRECTS` to Astro's `redirects:` config,
-where a splat over `/docs/mqtt-broker/*` collides with the real content routes.
+### Sequencing
 
 Cloudflare applies redirect rules regardless of whether a file exists at the
-path, so the splats take effect the moment they deploy — which is why they land
-before the content deletion, not after.
+path, so the splats take effect the moment they deploy — TBMQ docs go dark on
+thingsboard.io immediately, which is why they land *before* the content deletion,
+not after.
+
+One loose end to decide at that point: the TBMQ pages are still built and still
+in the sitemap, so crawlers get pointed at URLs that 301 cross-domain until the
+deletion lands. Either accept it for the gap, or give those pages a cross-site
+`<link rel="canonical">` — the sitemap integration only includes pages that are
+self-canonical, so a cross-site canonical drops them automatically.
 ````
 
 - [ ] **Step 3: Verify no placeholders**
@@ -1218,12 +991,12 @@ git commit -m "docs(tbmq): add phase-2 removal inventory"
 
 ---
 
-### Task 11: Static verification sweep
+### Task 8: Static verification sweep
 
 **Files:** none modified.
 
 **Interfaces:**
-- Consumes: Tasks 1–10.
+- Consumes: Tasks 1–7.
 - Produces: green CI-equivalent checks.
 
 - [ ] **Step 1: Run the full CI set**
@@ -1236,7 +1009,7 @@ Expected: all three PASS. These are exactly what GitHub Actions runs, so a failu
 
 - [ ] **Step 2: If anything fails, fix it before continuing**
 
-Do not proceed to Task 12 with a red check. A build takes minutes; a type error found now costs seconds.
+Do not proceed to Task 9 with a red check. A build takes minutes; a type error found now costs seconds.
 
 - [ ] **Step 3: No commit unless a fix was needed**
 
@@ -1244,12 +1017,12 @@ If you fixed something, commit it with a `fix(...)` message scoped to the file.
 
 ---
 
-### Task 12: Built-output verification
+### Task 9: Built-output verification
 
 **Files:** none modified.
 
 **Interfaces:**
-- Consumes: Tasks 1–11.
+- Consumes: Tasks 1–8.
 - Produces: evidence that the resolved URLs are correct in real HTML.
 
 This is where Task 1's URL builders are actually tested — against rendered output rather than source.
@@ -1292,23 +1065,26 @@ grep -o 'https://tbmq.io/docs/mqtt-broker/installation/?installationType=helm' d
 
 Expected: first ≥ 16. Second must match **exactly** — no trailing slash after `helm`. A hit of `…?installationType=helm/` means `tbmqDocsUrl` mishandled the query string; fix the helper in `src/data/external-sites.ts`, not the call site.
 
-- [ ] **Step 6: Assert the pricing tab and bounce**
+- [ ] **Step 6: Assert the deferred surfaces are byte-identical**
+
+The two surfaces left for a later decision must come out of this build unchanged:
 
 ```bash
-grep -o 'href="https://tbmq.io/pricing/"[^>]*' dist/pricing/index.html | head -1
 grep -c 'data-product-content="tbmq"' dist/pricing/index.html
-grep -o 'tbmqPricingUrl' dist/pricing/index.html | head -1
+grep -o 'href="/products/mqtt-broker/"' dist/index.html dist/products/index.html | wc -l
+grep -c 'tbmq\.io' dist/pricing/index.html
 ```
 
-Expected: the anchor found with `target`/`rel`; `data-product-content="tbmq"` count **0**; `tbmqPricingUrl` present (the `define:vars` binding reached the inline script).
+Expected: `1` (the local TBMQ pricing block still renders), `2` (both ecosystem cards still point locally), `0` (no tbmq.io URL leaked into the pricing page). Any other result means a deferred row from the header table was implemented.
 
-- [ ] **Step 7: Assert no local TBMQ product links survive on the changed marketing pages**
+- [ ] **Step 7: Assert the TBMQ docs are still reachable**
 
 ```bash
-grep -o 'href="/products/mqtt-broker/"' dist/index.html dist/products/index.html dist/installations/index.html
+test -f dist/docs/mqtt-broker/index.html && echo "TBMQ docs built"
+grep -c "mqtt-broker" dist/_redirects
 ```
 
-Expected: **no output.** The `/products/mqtt-broker/` page itself still exists in `dist/` — that is correct, it is phase-2 work.
+Expected: `TBMQ docs built`, and the `dist/_redirects` count **unchanged from `main`** — compare with `git show main:public/_redirects | grep -c mqtt-broker`. No cutover redirect belongs in this phase.
 
 - [ ] **Step 8: Run the link checker**
 
@@ -1316,7 +1092,7 @@ Expected: **no output.** The `/products/mqtt-broker/` page itself still exists i
 pnpm lint:linkcheck:nobuild
 ```
 
-Expected: PASS. `pnpm build:fast` in Step 2 already produced `dist/`, so the `:nobuild` variant is right. tbmq.io URLs are skipped as external hosts (`scripts/lint-linkcheck.ts` only treats `PROD_ORIGIN` and `additionalLocalHosts` as local), so they cannot fail here — what this catches is an internal link broken by the pricing-block deletion.
+Expected: PASS. `pnpm build:fast` in Step 2 already produced `dist/`, so the `:nobuild` variant is right. tbmq.io URLs are skipped as external hosts (`scripts/lint-linkcheck.ts` only treats `PROD_ORIGIN` and `additionalLocalHosts` as local), so they cannot fail here — what this catches is an internal link accidentally broken along the way.
 
 - [ ] **Step 9: Manual smoke check**
 
@@ -1324,10 +1100,10 @@ Report to the user which surfaces to click through, since only they can eyeball 
 
 1. Products menu → TBMQ → `tbmq.io/product/` in a new tab
 2. Docs menu → TBMQ → `tbmq.io/docs/` in a new tab
-3. Any docs page → product selector → Ecosystem → MQTT Broker → `tbmq.io/docs/`, with the ↗ affordance visible in the popover row
-4. `/installations/?product=mqtt-broker` → panel still renders locally; every CTA and deploy card opens tbmq.io
-5. `/pricing/` → TBMQ tab opens `tbmq.io/pricing/` in a new tab; the ThingsBoard tab and its three sub-tabs behave exactly as before
-6. `/pricing/?section=tbmq-options` → bounces to `tbmq.io/pricing/` with no flash of the ThingsBoard tab
+3. Any docs page → left-panel product selector → Ecosystem → MQTT Broker → `tbmq.io/docs/`, with the ↗ affordance visible in the popover row
+4. `/installations/?product=mqtt-broker` → panel still renders locally; every CTA, feature link and deploy card opens tbmq.io
+5. Any TBMQ docs page (e.g. `/docs/mqtt-broker/getting-started/`) → still loads normally; the edition pills still switch Community ↔ Professional locally
+6. `/pricing/` → unchanged: TBMQ tab still switches to local sections, all three sub-tabs and calculators work
 
 - [ ] **Step 10: No commit**
 
@@ -1337,27 +1113,27 @@ Verification only. Any fix gets its own scoped commit and a re-run of the affect
 
 ## Self-Review
 
-**Spec coverage:**
+**Requested-scope coverage** (the four surfaces the user asked for on 2026-07-27):
 
-| Spec section | Task |
+| Requested surface | Task |
 |---|---|
-| § A central URL module | 1 |
-| § B item 1 — Products menu | 2, 3 |
-| § B item 2 — Docs menu | 2, 3 |
-| § B item 3 — Try it now, 18 links | 5 |
-| § B item 4 — docs product selector | 4 |
-| § B item 7 — pricing tab + query bounce | 6, 7 |
-| § C — homepage + products-index cards | 8 |
-| § C — blog posts deliberately excluded | 9 Step 2 asserts no content edits |
-| § D — phase-2 redirects | 10 (documented, not implemented — correct per spec) |
-| § E — removal inventory | 10 |
-| Verification | 11, 12 |
-| "No hardcoded URLs" constraint | 9 |
+| Products menu → TBMQ | 2, 3 |
+| Docs menu → TBMQ | 2, 3 |
+| Docs left-panel product selector → MQTT Broker | 4 |
+| Try it now TBMQ panel, 18 links | 5 |
+| Supporting: central URL module | 1 |
+| Supporting: no-hardcoded-URL audit + deferred-surface guard | 6 |
+| Supporting: inventory of everything still live | 7 |
+| Supporting: verification | 8, 9 |
 
+**Deferred-scope coverage** — each row of the header table is documented in Task 7's inventory, not implemented: pricing (§ Pricing, item B), ecosystem cards (§ Marketing ecosystem cards, item C), the docs cutover redirect and its 31-entry chain prune (§ Redirects, item A), content deletion (§ Docs content, § Blog, item D). Tasks 6 and 9 both assert that none of them was touched.
 No gaps.
 
-**Placeholder scan:** No TBD/TODO. Every code step carries the actual code. Every verification step carries the actual command and expected output. Task 10's document body is written out in full rather than described.
+**Placeholder scan:** No TBD/TODO. Every code step carries the actual code. Every verification step carries the actual command and expected output. Task 7's document body is written out in full rather than described.
 
-**Type consistency:** `tbmqUrl` / `tbmqDocsUrl` / `TBMQ_URLS` / `TBMQ_ORIGIN` are defined in Task 1 and used with those exact names in Tasks 3, 4, 5, 6, 7, 8. `SubMenuItem.external` is defined in Task 2 and set in Task 3. `Family.externalUrl` is defined and consumed within Task 4. `ProductTabs`' `href` is defined and consumed within Task 6, and Task 7 depends only on the class/attribute contract Task 6 Step 5 asserts.
+**Type consistency:** `tbmqUrl` / `tbmqDocsUrl` / `TBMQ_URLS` / `TBMQ_ORIGIN` are defined in Task 1 and used with those exact names in Tasks 3, 4 and 5. `TBMQ_URLS` has exactly three keys — `product` (Task 3), `docs` (Tasks 3, 4), `liveDemo` (Task 5) — and every one is consumed, so no unused key ships. `SubMenuItem.external` is defined in Task 2 and set in Task 3. `Family.externalUrl` is defined and consumed within Task 4.
 
-**One risk worth flagging to the reviewer:** Task 7 Step 6 removes imports based on grep. `ceIcon`, `smIcon` and `pcIcon` are shared between `tbSubTabs` and the deleted `tbmqSubTabs`, so they must survive. `pnpm check` catches an over-removal immediately (undefined identifier), and `pnpm lint:eslint` catches an under-removal (unused import) — the two together make this safe, but it is the step most likely to need a second pass.
+**Two risks worth flagging to the reviewer:**
+
+1. **Task 4 must not empty the TBMQ `editions` array.** `currentFamily` is derived by matching the URL's product against `editions`, and TBMQ docs are still live — emptying it makes `currentFamily` undefined and the following non-null assertion throws at build time for all 174 TBMQ pages. Task 4's Step 7 grep is the guard.
+2. **Scope creep is the main failure mode here.** Four of the original twelve tasks were cut, and the cut work is adjacent to the surviving work: an implementer in `installations.ts` may notice the pricing FAQ links, and one in `VersionSwitcher.astro` may reason that the redirect "should" come too. Tasks 6 and 9 exist to catch that, but the header table is the instruction — flag, don't implement.
