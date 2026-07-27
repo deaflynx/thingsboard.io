@@ -1,3 +1,5 @@
+import { TBMQ_URLS } from '@data/external-sites';
+
 export interface NavItem {
 	label: string;
 	href?: string;
@@ -100,11 +102,12 @@ export const productsSubmenu: SubMenu = {
 					linkClass: 'mobile-pe-lnk',
 				},
 				{
-					href: '/products/mqtt-broker/',
+					href: TBMQ_URLS.product,
 					icon: '/src/assets/images/landings/nav/tbmq-icon.svg',
 					heading: 'TBMQ',
 					description: 'Scalable MQTT broker',
 					linkClass: 'mqtt-broker-lnk',
+					external: true,
 				},
 				{
 					href: '/products/trendz/',
@@ -405,10 +408,11 @@ export const docsSubmenu: SubMenu = {
 					linkClass: 'mobile-pe-lnk',
 				},
 				{
-					href: '/docs/mqtt-broker/',
+					href: TBMQ_URLS.docs,
 					heading: 'TBMQ',
 					description: 'Scalable MQTT broker',
 					linkClass: 'mqtt-broker-lnk',
+					external: true,
 				},
 				{
 					href: '/docs/trendz/',
