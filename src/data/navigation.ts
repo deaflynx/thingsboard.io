@@ -11,6 +11,8 @@ export interface SubMenuItem {
 	heading: string;
 	description?: string;
 	linkClass?: string;
+	/** Opens in a new tab. Set for links that leave thingsboard.io. */
+	external?: boolean;
 }
 
 export interface SubMenuGroup {
