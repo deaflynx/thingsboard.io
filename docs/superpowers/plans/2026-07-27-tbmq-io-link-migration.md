@@ -445,7 +445,13 @@ Change the `href` and add the two external attributes:
 						>
 ```
 
-- [ ] **Step 5: Add the outbound affordance**
+- [ ] **Step 5: Add the outbound affordance** — **NOT IMPLEMENTED (deferred 2026-07-27)**
+
+> The user asked to leave the MQTT Broker row looking like every other row for
+> now: same markup, no `↗` glyph, no `.ps-external` rule. The link still opens in
+> a new tab — only the visual affordance is missing. Keep this step written out;
+> it is the spec for adding the styling later if we decide the outbound jump
+> needs to be signposted. Everything below in this step is unbuilt.
 
 Inside the same `<a>`, the trailing check mark renders for the active family:
 
@@ -535,7 +541,17 @@ git commit -m "feat(docs): point MQTT Broker product selector at tbmq.io"
 - Consumes: `TBMQ_URLS`, `tbmqDocsUrl` from Task 1.
 - Produces: nothing new.
 
-Per the spec the panel **stays on thingsboard.io**; only its 18 links leave. Do not delete the block, do not touch the other five product blocks, do not touch `heroImages` or `productTabs`.
+Per the spec the panel **stays on thingsboard.io**; only its links leave. Do not delete the block, do not touch the other five product blocks, do not touch `heroImages` or `productTabs`.
+
+> **Narrowed 2026-07-27 — only the three buttons move.** The user scoped this task
+> down to Steps 1 and 3. The description's two links, the six feature links and the
+> eight deploy-card links **stay local** (`/products/mqtt-broker/`,
+> `/docs/mqtt-broker/…`) until TBMQ docs actually come down. Steps 2, 4 and 5 below
+> are the spec for that later pass — they are written out but unbuilt, and Step 6's
+> grep expectations describe the full sweep, not the current state. As built:
+> `tbmqDocsUrl(` appears twice and `TBMQ_URLS.liveDemo` once in `installations.ts`,
+> and 16 local `/docs/mqtt-broker/…` and `/products/mqtt-broker/` links remain
+> (2 in the description, 6 features, 8 deploy cards).
 
 - [ ] **Step 1: Add the import**
 

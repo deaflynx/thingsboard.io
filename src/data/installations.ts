@@ -66,7 +66,7 @@ export const products: ProductData[] = [
 		id: 'thingsboard-cloud',
 		title: 'ThingsBoard Cloud',
 		description:
-			"The ThingsBoard Cloud is a fully managed, scalable and fault-tolerant platform for your IoT applications. ThingsBoard Cloud is for everyone who would like to use ThingsBoard Professional Edition but don't want to host their own instance of the platform.\n\nThe ThingsBoard cluster stores your data within the European and the United States, complying with their respective regulations.\n\nSelect your region and start using ThingsBoard Cloud <b>for free</b>.",
+			'The ThingsBoard Cloud is a fully managed, scalable and fault-tolerant platform for your IoT applications. ThingsBoard Cloud is for everyone who would like to use ThingsBoard Professional Edition but don\'t want to host their own instance of the platform.\n\nThe ThingsBoard cluster stores your data within the European and the United States, complying with their respective regulations.\n\nSelect your region and start using ThingsBoard Cloud <b>for free</b>.',
 		buttons: [
 			{
 				id: 'TryItNow_Cloud_NorthAmerica',
@@ -121,7 +121,8 @@ export const products: ProductData[] = [
 				{
 					title: 'Data durability',
 					href: '/docs/reference/architecture/microservices/',
-					description: "Platform uses data replication and backup procedures to make sure you don't lose the data.",
+					description:
+						'Platform uses data replication and backup procedures to make sure you don\'t lose the data.',
 				},
 			],
 		],
@@ -158,7 +159,8 @@ export const products: ProductData[] = [
 				{
 					title: 'Rule Engine',
 					href: '/docs/user-guide/rule-engine/',
-					description: 'Define data processing rules and trigger reactions using powerful rule engine components.',
+					description:
+						'Define data processing rules and trigger reactions using powerful rule engine components.',
 				},
 				{
 					title: 'Microservices',
@@ -307,7 +309,8 @@ export const products: ProductData[] = [
 				{
 					title: 'Advanced RBAC for IoT',
 					href: '/docs/pe/user-guide/roles/',
-					description: 'Advanced management of user roles and permissions. Manage hierarchy of customers.',
+					description:
+						'Advanced management of user roles and permissions. Manage hierarchy of customers.',
 				},
 			],
 			[
@@ -319,7 +322,8 @@ export const products: ProductData[] = [
 				{
 					title: 'Platform Integrations',
 					href: '/docs/pe/user-guide/integrations/',
-					description: 'Out of the box integrations with popular IoT platforms and connectivity providers.',
+					description:
+						'Out of the box integrations with popular IoT platforms and connectivity providers.',
 				},
 				{
 					title: 'Scheduler and Reporting',
@@ -543,7 +547,8 @@ export const products: ProductData[] = [
 				{
 					title: 'Predict failures and forecast utilization',
 					href: '/docs/trendz/prediction/',
-					description: 'Plan and optimize operations with insights into future events and system behavior.',
+					description:
+						'Plan and optimize operations with insights into future events and system behavior.',
 				},
 				{
 					title: 'Detection Anomalies',
@@ -608,7 +613,8 @@ export const products: ProductData[] = [
 	{
 		id: 'mqtt-broker',
 		title: 'MQTT Broker',
-		description: `<b>TBMQ</b> is a highly scalable and durable <a href="${TBMQ_URLS.product}" target="_blank" rel="noopener noreferrer">MQTT message broker</a> built for real-time data processing across IoT ecosystems of any scale. It efficiently handles millions of concurrent client connections and processes millions of messages per second while maintaining low latency and reliable delivery. Designed for horizontal scalability, TBMQ seamlessly expands across cluster nodes to support massive deployments with millions of connected devices. <a href="${TBMQ_URLS.docs}" target="_blank" rel="noopener noreferrer">Read more<span class="sr-only"> about TBMQ MQTT Broker</span></a>.`,
+		description:
+			'<b>TBMQ</b> is a highly scalable and durable <a href="/products/mqtt-broker/" target="_blank" rel="noopener noreferrer">MQTT message broker</a> built for real-time data processing across IoT ecosystems of any scale. It efficiently handles millions of concurrent client connections and processes millions of messages per second while maintaining low latency and reliable delivery. Designed for horizontal scalability, TBMQ seamlessly expands across cluster nodes to support massive deployments with millions of connected devices. <a href="/docs/mqtt-broker/" target="_blank" rel="noopener noreferrer">Read more<span class="sr-only"> about TBMQ MQTT Broker</span></a>.',
 		buttons: [
 			{
 				id: 'TryItNow_TBMQ_Demo',
@@ -647,19 +653,20 @@ export const products: ProductData[] = [
 			[
 				{
 					title: 'Unlimited Horizontal Scaling',
-					href: tbmqDocsUrl('reference/100m-connections-performance-test/'),
+					href: '/docs/mqtt-broker/reference/100m-connections-performance-test/',
 					target: '_blank',
 					description: 'Scale horizontally to manage more than 100M MQTT connections on a single cluster',
 				},
 				{
 					title: 'Million-Message Throughput',
-					href: tbmqDocsUrl('reference/3m-throughput-single-node-performance-test/'),
+					href: '/docs/mqtt-broker/reference/3m-throughput-single-node-performance-test/',
 					target: '_blank',
-					description: 'Process millions of messages per second with 1 TBMQ server and single-digit latency',
+					description:
+						'Process millions of messages per second with 1 TBMQ server and single-digit latency',
 				},
 				{
 					title: 'Masterless High Availability',
-					href: tbmqDocsUrl('architecture/'),
+					href: '/docs/mqtt-broker/architecture/',
 					target: '_blank',
 					description: 'Prevent single point of failure with masterless nodes in the cluster',
 				},
@@ -667,19 +674,20 @@ export const products: ProductData[] = [
 			[
 				{
 					title: 'Universal MQTT Support',
-					href: tbmqDocsUrl('getting-started/'),
+					href: '/docs/mqtt-broker/getting-started/',
 					target: '_blank',
 					description: 'MQTT 3.x and 5.0 compatible for a seamless and secure connection experience',
 				},
 				{
 					title: 'Zero Data Loss Guarantee',
-					href: tbmqDocsUrl('architecture/'),
+					href: '/docs/mqtt-broker/architecture/',
 					target: '_blank',
-					description: "Guarantee the persistence and replication of your data to ensure it's never lost",
+					description:
+						'Guarantee the persistence and replication of your data to ensure it\'s never lost',
 				},
 				{
 					title: 'K8s & Cloud Agnostic',
-					href: tbmqDocsUrl('installation/'),
+					href: '/docs/mqtt-broker/installation/',
 					target: '_blank',
 					description: 'Deploy in cloud or on-premises using K8s scripts with ease',
 				},
@@ -693,28 +701,28 @@ export const products: ProductData[] = [
 						logo: install('docker-linux-mac.svg'),
 						logoAlt: 'Docker (Linux or Mac OS)',
 						title: 'Docker (Linux or Mac OS)',
-						href: tbmqDocsUrl('installation/docker/'),
+						href: '/docs/mqtt-broker/installation/docker/',
 						target: '_blank',
 					},
 					{
 						logo: install('docker-windows.svg'),
 						logoAlt: 'Docker (Windows)',
 						title: 'Docker (Windows)',
-						href: tbmqDocsUrl('installation/docker-windows/'),
+						href: '/docs/mqtt-broker/installation/docker-windows/',
 						target: '_blank',
 					},
 					{
 						logo: install('docker-compose.svg'),
 						logoAlt: 'Cluster setup with Docker Compose',
 						title: 'Cluster with Docker Compose',
-						href: tbmqDocsUrl('installation/cluster/docker-compose-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/docker-compose-setup/',
 						target: '_blank',
 					},
 					{
 						logo: install('minikube.svg'),
 						logoAlt: 'Cluster setup with Minikube',
 						title: 'Cluster setup with Minikube',
-						href: tbmqDocsUrl('installation/cluster/minikube-cluster-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/minikube-cluster-setup/',
 						target: '_blank',
 					},
 				],
@@ -726,28 +734,28 @@ export const products: ProductData[] = [
 						logo: install('eks.svg'),
 						logoAlt: 'Cluster setup on EKS',
 						title: 'Cluster setup on EKS',
-						href: tbmqDocsUrl('installation/cluster/aws-cluster-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/aws-cluster-setup/',
 						target: '_blank',
 					},
 					{
 						logo: install('azure.svg'),
 						logoAlt: 'Cluster setup on AKS',
 						title: 'Cluster setup on AKS',
-						href: tbmqDocsUrl('installation/cluster/azure-cluster-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/azure-cluster-setup/',
 						target: '_blank',
 					},
 					{
 						logo: install('gcp.svg'),
 						logoAlt: 'Cluster setup on GCP',
 						title: 'Cluster setup on GCP',
-						href: tbmqDocsUrl('installation/cluster/gcp-cluster-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/gcp-cluster-setup/',
 						target: '_blank',
 					},
 					{
 						logo: install('helm.svg'),
 						logoAlt: 'Cluster setup using Helm',
 						title: 'Cluster setup using Helm',
-						href: tbmqDocsUrl('installation/?installationType=helm'),
+						href: '/docs/mqtt-broker/installation/?installationType=helm',
 						target: '_blank',
 					},
 				],
@@ -758,17 +766,16 @@ export const products: ProductData[] = [
 
 export const productTabs = products.map((p, i) => ({
 	id: p.id,
-	label:
-		p.id === 'thingsboard-ce'
-			? 'Community Edition'
-			: p.id === 'thingsboard-pe'
-				? 'Professional Edition'
-				: p.id === 'thingsboard-cloud'
-					? 'Cloud'
-					: p.id === 'thingsboard-edge'
-						? 'Edge'
-						: p.id === 'thingsboard-trendz'
-							? 'Trendz'
-							: 'TBMQ',
+	label: p.id === 'thingsboard-ce'
+		? 'Community Edition'
+		: p.id === 'thingsboard-pe'
+			? 'Professional Edition'
+			: p.id === 'thingsboard-cloud'
+				? 'Cloud'
+				: p.id === 'thingsboard-edge'
+					? 'Edge'
+					: p.id === 'thingsboard-trendz'
+						? 'Trendz'
+						: 'TBMQ',
 	active: i === 0,
 }));

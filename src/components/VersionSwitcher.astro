@@ -271,18 +271,6 @@ const activeRegion = currentFamily.regions?.options.find((r) => r.product === cu
 								<span class="ps-item-name">{f.name}</span>
 								<span class="ps-item-tagline">{f.tagline}</span>
 							</span>
-							{f.externalUrl && (
-								<svg class="ps-external" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-									<path
-										d="M6 3.5H12.5V10M12.5 3.5L4 12"
-										stroke="currentColor"
-										stroke-width="1.33"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										fill="none"
-									/>
-								</svg>
-							)}
 							{f.id === currentFamily.id && (
 								<svg class="ps-check" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
 									<path
@@ -438,7 +426,9 @@ const activeRegion = currentFamily.regions?.options.find((r) => r.product === cu
 				// Click inside the trigger / wrapper: handled by per-trigger listeners.
 				if (this.contains(target)) return;
 				// Click inside a portalled popover: keep it open.
-				const popoverIds = triggers.map((t) => t.getAttribute('aria-controls')).filter((id): id is string => !!id);
+				const popoverIds = triggers
+					.map((t) => t.getAttribute('aria-controls'))
+					.filter((id): id is string => !!id);
 				for (const id of popoverIds) {
 					const pop = findPopover(id);
 					if (pop && pop.contains(target)) return;
@@ -750,12 +740,5 @@ const activeRegion = currentFamily.regions?.options.find((r) => r.product === cu
 	.ps-check {
 		flex-shrink: 0;
 		color: var(--sl-color-text-accent, var(--sl-color-accent-high));
-	}
-
-	.ps-external {
-		flex-shrink: 0;
-		margin-left: auto;
-		color: var(--color-text-secondary);
-		opacity: 0.6;
 	}
 </style>

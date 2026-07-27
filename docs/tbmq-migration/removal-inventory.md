@@ -131,6 +131,13 @@ and not worth threading the plumbing through two more components.
 
 ## Try it now
 
+Only the panel's **three CTA buttons** were repointed at tbmq.io in the first pass.
+**16 links in this block are still local** and still resolve on thingsboard.io: the
+two in the `description` string (`/products/mqtt-broker/`, `/docs/mqtt-broker/`),
+the six feature links, and the eight deploy-card links. They were deliberately left
+alone until TBMQ docs actually come down — repointing them is part of item A/D, not
+a separate decision.
+
 - the `mqtt-broker` product block in `src/data/installations.ts` (L609–756) and the
   `mqttBroker()` image-path helper it uses (L56)
 - `productTabs` (L759) needs no entry removed — it is derived from `products` — but
