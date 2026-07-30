@@ -17,11 +17,19 @@ rediscovery exercise.
 
 ## Constraints and findings
 
-**tbmq.io mirrors the docs tree 1:1.** `tbmq.io/docs/mqtt-broker/**` has the
+**tbmq.io mirrors the docs tree 1:1.** ~~`tbmq.io/docs/mqtt-broker/**` has the
 same shape as thingsboard.io's. tbmq.io also 301s its own `/docs/` →
-`/docs/mqtt-broker/` and `/products/mqtt-broker/` → `/`. Every deep doc link
-therefore maps by prefix substitution — no per-page mapping table is needed,
-now or at deletion time.
+`/docs/mqtt-broker/` and `/products/mqtt-broker/` → `/`.~~ Every deep doc link
+maps by prefix substitution — no per-page mapping table is needed, now or at
+deletion time.
+
+> **Corrected 2026-07-28.** tbmq.io carries **no `mqtt-broker/` segment**: it is a
+> TBMQ-only site, so `/docs/mqtt-broker/<slug>` here is `/docs/<slug>` there, and
+> the product landing is the site root `/`, not `/product/`. Prefix substitution
+> still holds — the prefix is just shorter. Everything below that spells
+> `tbmq.io/docs/mqtt-broker/…` or `tbmq.io/product/` is superseded; the live shape
+> is whatever `src/data/external-sites.ts` builds, and the phase-2 redirect targets
+> in `docs/tbmq-migration/removal-inventory.md` have been updated to match.
 
 **No hardcoded URLs.** The repo's established pattern for a value that must not
 be spelled twice is a single exported constant consumed everywhere:

@@ -3,35 +3,41 @@
 TBMQ moved to tbmq.io. The first pass (see
 `docs/superpowers/specs/2026-07-27-tbmq-io-link-migration-design.md`) repointed four
 entry points: the Products menu, the Docs menu, the docs left-panel product
-selector, and the Try it now TBMQ panel. Everything below is still live on
-thingsboard.io and still awaiting a decision.
+selector, and the Try it now TBMQ panel.
+
+The second pass **landed the edge cutover** — every `/docs/mqtt-broker/*` and
+`/products/mqtt-broker/` request now 301s to tbmq.io, so inbound Google results and
+links from other sites resolve without a per-link source edit. Deployment order is
+tbmq.io first, then thingsboard.io, so nothing lands on a missing page.
 
 Counts measured 2026-07-27 on branch `tbmq-migration`.
 
-## Still live, awaiting a go-ahead
+## Status
 
-Each of these is independently approvable — none blocks the others:
+| | What | State | Where in this document |
+|---|---|---|---|
+| A | The `/docs/mqtt-broker/*` cutover redirect | **done** | § Redirects |
+| B | Pricing page TBMQ toggle | awaiting go-ahead | § Pricing |
+| C | Homepage + `/products/` ecosystem cards | awaiting go-ahead | § Marketing ecosystem cards |
+| D | Delete the TBMQ docs, marketing pages, blog posts and assets | awaiting go-ahead | § Docs content, § Marketing, § Blog |
 
-| | What | Where in this document |
-|---|---|---|
-| A | The `/docs/mqtt-broker/*` cutover redirect | § Redirects |
-| B | Pricing page TBMQ toggle | § Pricing |
-| C | Homepage + `/products/` ecosystem cards | § Marketing ecosystem cards |
-| D | Delete the TBMQ docs, marketing pages, blog posts and assets | § Docs content, § Marketing, § Blog |
+With A in place, **D is unblocked** — the redirects already cover every URL the
+deletion would remove. **B and C are independent** of both and can ship at any time.
 
-**A and D are ordered:** the redirect must deploy _before_ the deletion, so no
-request ever lands on a page that is already gone. **B and C are independent** of
-both and can ship at any time.
+## Order of operations for the remaining sweep (D)
 
-## Order of operations for the full sweep (A + D)
-
-1. Add the redirects (§ Redirects) — including the chain prune, which is not
-   optional; skip it and `pnpm lint:redirects` fails.
+1. ~~Add the redirects~~ — done, see § Redirects.
 2. Delete content (§ Docs content, § Marketing, § Blog).
 3. Remove the plumbing (§ Sidebar, § Product plumbing) — this is what makes
    `pnpm check` fail if a reference was missed.
 4. Delete the data files (§ Pricing, § Try it now).
 5. `pnpm generate:redirects`, then `pnpm check && pnpm lint:eslint && pnpm lint:slugcheck && pnpm lint:redirects && pnpm lint:linkcheck`.
+
+**Live gap until D lands:** the TBMQ pages are still built and still in the sitemap,
+so crawlers are pointed at URLs that now 301 cross-domain. Either accept it for the
+gap, or give those pages a cross-site `<link rel="canonical">` — the sitemap
+integration only includes self-canonical pages, so a cross-site canonical drops them
+automatically.
 
 ## Docs content
 
@@ -145,91 +151,95 @@ a separate decision.
   fallback has to be re-pointed at whichever product should own it
 - the TBMQ hero images it references under `src/assets/images/landings/mqtt-broker/`
 
-## Redirects — item A, not yet added
+## Redirects — item A, landed
 
-tbmq.io mirrors the docs tree 1:1 (`tbmq.io/docs/mqtt-broker/**`), so the whole
-cutover is prefix substitution. Nothing below exists in the repo yet.
+tbmq.io mirrors the docs tree slug-for-slug, but **without the `mqtt-broker/`
+product segment** — that site is TBMQ-only, so `/docs/mqtt-broker/<slug>` here is
+`/docs/<slug>` there. The cutover is therefore pure prefix substitution.
 
-### The two splats
+All of the below is in `src/data/redirects.ts` and regenerated into
+`public/_redirects` + `public/redirects.json`. The origin and docs root are not
+spelled here — `redirects.ts` imports `TBMQ_DOCS_BASE`, `TBMQ_URLS` and
+`tbmqDocsUrl` from `src/data/external-sites.ts`, so a tbmq.io restructure is still
+a one-file edit.
 
-Add to `DYNAMIC_REDIRECTS` in `src/data/redirects.ts`. The generated
-`public/_redirects` currently emits **46 dynamic rules** (from 7 source entries —
-several expand over category/page lists), against the Cloudflare Pages budget of
-100, so this lands at 48:
+### The cutover splats
+
+Five entries in the `TBMQ_CUTOVER` group of `DYNAMIC_REDIRECTS`. Cloudflare takes
+the **first match**, so the `install/` → `installation/` Jekyll renames precede the
+generic splats:
 
 ```
-/docs/mqtt-broker/*    → https://tbmq.io/docs/mqtt-broker/:splat 301
-/docs/pe/mqtt-broker/* → https://tbmq.io/docs/mqtt-broker/pe/:splat 301
+/docs/mqtt-broker/pe/install/*  → https://tbmq.io/docs/pe/installation/:splat 301
+/docs/pe/mqtt-broker/install/*  → https://tbmq.io/docs/pe/installation/:splat 301
+/docs/mqtt-broker/install/*     → https://tbmq.io/docs/installation/:splat 301
+/docs/pe/mqtt-broker/*          → https://tbmq.io/docs/pe/:splat 301
+/docs/mqtt-broker/*             → https://tbmq.io/docs/:splat 301
 ```
 
-They **must** go in `DYNAMIC_REDIRECTS`, not `NON_DOCS_REDIRECTS`:
+The generic `/docs/mqtt-broker/*` rule covers PE too: `/docs/mqtt-broker/pe/x`
+loses the segment and lands on `/docs/pe/x`, which is already correct. The separate
+`/docs/pe/mqtt-broker/*` rule exists only for the legacy Jekyll ordering.
+
+Dynamic-rule budget: **47 of Cloudflare's 100** (was 46; the five new rules replaced
+four emitted by the deleted catch-all groups).
+
+They **must** stay in `DYNAMIC_REDIRECTS`, not `NON_DOCS_REDIRECTS`:
 `astro.redirects.ts` feeds `NON_DOCS_REDIRECTS` to Astro's `redirects:` config,
 where a splat over `/docs/mqtt-broker/*` collides with the real content routes.
 Keeping them out of the Astro config also means `pnpm dev`, `pnpm preview` and
 `pnpm lint:linkcheck` still see the real TBMQ pages — the link checker stays
 green and the docs remain browsable locally.
 
-### The chain prune — not optional
+### The chain prune — done by rewriting, not deleting
 
-`src/data/redirects.ts` already holds **27 `SINGLE_REDIRECTS` whose targets sit
-under `/docs/mqtt-broker/`** (`/docs/mqtt-broker/api/ → /docs/mqtt-broker/rest-api/`,
-`…/faq/ → …/why-tbmq/`, and 25 more), plus **4 `CATCH_ALL_REDIRECTS` groups**:
-`mqtt-broker/install`, `mqtt-broker/pe/install`, `pe/mqtt-broker/install`,
-`pe/mqtt-broker`.
+`redirects.ts` held **27 `SINGLE_REDIRECTS` targeting `/docs/mqtt-broker/`** plus
+**4 `CATCH_ALL_REDIRECTS` groups** (`mqtt-broker/install`, `mqtt-broker/pe/install`,
+`pe/mqtt-broker/install`, `pe/mqtt-broker`). Left alone, every one would have become
+a chain once the splats landed — `pnpm lint:redirects` fails and visitors pay two
+round-trips.
 
-Add the splats without touching them and every one becomes a redirect chain:
-`pnpm lint:redirects` fails, and real visitors pay two round-trips.
-
-Delete all 31. This is safe **only if tbmq.io still carries the identical legacy
-redirect table** — it did when the design pass checked on 2026-07-27
-(`/docs/mqtt-broker/api/ → /docs/mqtt-broker/rest-api/` was present in their
-`public/_redirects`), but re-confirm against their repo before deleting, because
-the splat forwards the legacy shape across and tbmq.io has to resolve it on
-their side.
-
-Regenerate the counts before trusting these numbers:
-
-```bash
-node --experimental-transform-types -e "
-import('./src/data/redirects.ts').then(m => {
-  const t = s => (s ?? '').includes('mqtt-broker');
-  console.log('singles targeting /docs/mqtt-broker/:',
-    m.SINGLE_REDIRECTS.filter(e => e.target.startsWith('/docs/mqtt-broker/')).length);
-  console.log('catch-all groups touching mqtt-broker:',
-    m.CATCH_ALL_REDIRECTS.filter(g => t(g.oldPrefix) || t(g.newPrefix)).length);
-});
-"
-```
-
-Deleting the singles also drops them from `public/redirects.json`, which _is_
-spread into `astro.redirects.ts` — so those legacy URLs stop resolving in
-`pnpm dev` / `pnpm preview`. They are inbound-only Jekyll-era URLs and nothing in
-the repo links to them, but confirm with `pnpm lint:linkcheck` rather than
-assuming.
-
-Also prune the one `/docs/*/search/` entry in `devFallbackRedirects` in
-`astro.redirects.ts` that mentions `mqtt-broker` —
-`'/docs/pe/mqtt-broker/search/': '/docs/mqtt-broker/pe/search/'` (L24). It is the
-only one of the five entries in that map that touches TBMQ.
-
-### Marketing and blog
-
-Add to `NON_DOCS_REDIRECTS`:
+Rather than deleting them and relying on tbmq.io to re-resolve the legacy shape on
+their side, **the 27 singles were rewritten to their final tbmq.io URL** via
+`tbmqDocsUrl(...)`:
 
 ```
-/products/mqtt-broker/ → https://tbmq.io/product/ 301
-/blog/<each of the 8 slugs above>/ → https://tbmq.io/blog/<slug>/ 301
+/docs/mqtt-broker/api/  → https://tbmq.io/docs/rest-api/  (was → /docs/mqtt-broker/rest-api/)
+/docs/mqtt-broker/faq/  → https://tbmq.io/docs/why-tbmq/
 ```
 
-### Sequencing
+That resolves in **one hop to the right page** and depends on nothing in tbmq.io's
+own redirect table — which is what the earlier draft of this document assumed, and
+could not verify.
 
-Cloudflare applies redirect rules regardless of whether a file exists at the
-path, so the splats take effect the moment they deploy — TBMQ docs go dark on
-thingsboard.io immediately, which is why they land _before_ the content deletion,
-not after.
+The 4 catch-all groups were **deleted** and replaced by the three `install/` splats
+above, because `CatchAllRedirect` can only express a local `newPrefix` — it cannot
+target another origin.
 
-One loose end to decide at that point: the TBMQ pages are still built and still
-in the sitemap, so crawlers get pointed at URLs that 301 cross-domain until the
-deletion lands. Either accept it for the gap, or give those pages a cross-site
-`<link rel="canonical">` — the sitemap integration only includes pages that are
-self-canonical, so a cross-site canonical drops them automatically.
+`pnpm lint:redirects` reports no chains across 1040 SINGLE + 52 NON_DOCS targets.
+
+### Marketing
+
+In `NON_DOCS_REDIRECTS`:
+
+```
+/products/mqtt-broker/ → https://tbmq.io/ 301
+```
+
+`/products/mqtt-broker/privacy-policy/` and `…/terms-of-use/` are **deliberately not
+covered** — no splat here, so they keep serving locally until tbmq.io's equivalents
+are confirmed.
+
+### Still to add — blog
+
+The 8 TBMQ blog posts (§ Blog) are **not redirected yet**. The rule shape is
+`/blog/<slug>/ → https://tbmq.io/blog/<slug>/ 301`, but unlike the docs tree this is
+not a mechanical prefix rule — each target slug has to be confirmed to exist on
+tbmq.io first, or we trade 8 local pages for 8 cross-domain 404s.
+
+### Dev-mode leftovers
+
+`devFallbackRedirects` in `astro.redirects.ts` still has one mqtt-broker entry —
+`'/docs/pe/mqtt-broker/search/': '/docs/mqtt-broker/pe/search/'` (L24). It is dev-only
+(never emitted to `_redirects`) and still useful while the local docs exist; remove
+it with item D.
