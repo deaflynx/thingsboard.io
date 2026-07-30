@@ -1153,3 +1153,95 @@ No gaps.
 
 1. **Task 4 must not empty the TBMQ `editions` array.** `currentFamily` is derived by matching the URL's product against `editions`, and TBMQ docs are still live — emptying it makes `currentFamily` undefined and the following non-null assertion throws at build time for all 174 TBMQ pages. Task 4's Step 7 grep is the guard.
 2. **Scope creep is the main failure mode here.** Four of the original twelve tasks were cut, and the cut work is adjacent to the surviving work: an implementer in `installations.ts` may notice the pricing FAQ links, and one in `VersionSwitcher.astro` may reason that the redirect "should" come too. Tasks 6 and 9 exist to catch that, but the header table is the instruction — flag, don't implement.
+
+---
+
+## Appendix — testing the cutover redirects locally (no tbmq.io instance needed)
+
+*Added 2026-07-30, after the phase-2 cutover landed in `src/data/redirects.ts`.*
+
+The five TBMQ cutover splats live only in `public/_redirects`, which only the
+Cloudflare edge executes — `pnpm dev` never reads that file, so on localhost the
+splat-covered URLs (e.g. `/docs/mqtt-broker/install/`) 404 instead of 301-ing.
+Exact-path singles are unaffected (they flow through `redirects.json` into the
+Astro config and redirect in dev).
+
+To exercise the splats locally, drop this **temporary** middleware in as
+`src/middleware.ts` and restart the dev server (a new middleware file is not
+picked up by HMR — restart is required):
+
+```ts
+import { defineMiddleware } from 'astro:middleware';
+import { DYNAMIC_REDIRECTS } from '@data/redirects.ts';
+
+// TEMPORARY — dev-only emulation of the Cloudflare edge for cross-origin splat
+// rules (the TBMQ cutover group). Astro never reads public/_redirects, so this
+// applies the same first-match 301s on localhost. Delete this file after
+// testing: while it is active, every /docs/mqtt-broker/* page redirects away
+// to tbmq.io in dev and `pnpm lint:linkcheck` will fail.
+
+const crossOriginRules = DYNAMIC_REDIRECTS.flatMap((group) => group.entries).filter((entry) =>
+	entry.target.startsWith('http'),
+);
+
+function toRegex(source: string): RegExp {
+	let body = source.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+	body = body.replace(/\*/g, '(.*)');
+	body = body.replace(/:[A-Za-z_][A-Za-z0-9_]*/g, '[^/]+');
+	return new RegExp(`^${body}$`);
+}
+
+const compiled = crossOriginRules.map((rule) => ({
+	regex: toRegex(rule.source),
+	target: rule.target,
+	status: (rule.status ?? 301) as 301,
+}));
+
+export const onRequest = defineMiddleware((context, next) => {
+	if (!import.meta.env.DEV) return next();
+	const { pathname } = context.url;
+	for (const rule of compiled) {
+		const match = rule.regex.exec(pathname);
+		if (match) {
+			return context.redirect(rule.target.replace(':splat', match[1] ?? ''), rule.status);
+		}
+	}
+	return next();
+});
+```
+
+It reads the cross-origin rules straight out of `DYNAMIC_REDIRECTS` (no copy to
+drift), compiles the splat patterns with the same regex semantics as
+`scripts/check-redirect-chains.ts`, and applies them first-match — including
+Cloudflare's "redirect wins over an existing page" behavior.
+
+Verification (all against `http://localhost:4321`):
+
+```bash
+# Splat with empty tail → docs root of the renamed prefix
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" http://localhost:4321/docs/mqtt-broker/install/
+# Expected: 301 https://tbmq.io/docs/installation/
+
+# Jekyll install-rename must win over the generic pe splat (first-match order)
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" http://localhost:4321/docs/pe/mqtt-broker/install/docker/
+# Expected: 301 https://tbmq.io/docs/pe/installation/docker/
+
+# Redirect beats a still-existing local page, like the Cloudflare edge
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" http://localhost:4321/docs/mqtt-broker/getting-started/
+# Expected: 301 https://tbmq.io/docs/getting-started/
+
+# Non-TBMQ pages unaffected
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4321/docs/getting-started/
+# Expected: 200
+```
+
+Caveats while the file exists:
+
+- The browser follows the 301 into a DNS error until tbmq.io is live — assert on
+  the `Location` header (curl or the devtools Network tab), not on the final page.
+- `pnpm lint:linkcheck` fails (every TBMQ docs link redirects away). Don't run it.
+- **Never commit `src/middleware.ts`** — it is a test harness, not a feature.
+
+Cleanup: delete `src/middleware.ts` and restart the dev server. Re-run the first
+curl above — it must 404 again (splats are edge-only), and
+`/docs/mqtt-broker/getting-started/` must 200.
