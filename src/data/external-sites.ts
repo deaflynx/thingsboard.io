@@ -16,11 +16,11 @@ const normalizeOrigin = (origin: string): string => origin.replace(/\/+$/, '');
 export const TBMQ_ORIGIN = normalizeOrigin(import.meta.env.TBMQ_SITE_URL ?? 'https://tbmq.io');
 
 /**
- * tbmq.io serves the TBMQ docs under the same tree thingsboard.io used, so a
- * slug maps across 1:1. Their `/docs/` 301s here, which is why `TBMQ_URLS.docs`
- * can stay on the shorter, restructure-proof entry point.
+ * tbmq.io is a TBMQ-only site, so its docs tree carries no `mqtt-broker/`
+ * segment: thingsboard.io's `/docs/mqtt-broker/<slug>` is `/docs/<slug>` there,
+ * a 1:1 mapping by prefix substitution.
  */
-const TBMQ_DOCS_ROOT = '/docs/mqtt-broker/';
+const TBMQ_DOCS_ROOT = '/docs/';
 
 /** Absolute tbmq.io URL for `path`. Leading and trailing slashes are normalized. */
 export function tbmqUrl(path = '/'): string {
@@ -31,8 +31,8 @@ export function tbmqUrl(path = '/'): string {
 
 /**
  * Absolute tbmq.io docs URL for a slug relative to the TBMQ docs root.
- *   tbmqDocsUrl('installation/')    → https://tbmq.io/docs/mqtt-broker/installation/
- *   tbmqDocsUrl('pe/installation/') → https://tbmq.io/docs/mqtt-broker/pe/installation/
+ *   tbmqDocsUrl('installation/')    → https://tbmq.io/docs/installation/
+ *   tbmqDocsUrl('pe/installation/') → https://tbmq.io/docs/pe/installation/
  *
  * Query strings survive: a slug ending in `?installationType=helm` is not given
  * a trailing slash.
@@ -51,7 +51,8 @@ export function tbmqDocsUrl(slug = ''): string {
  * deliberately absent until the pricing migration is approved.
  */
 export const TBMQ_URLS = {
-	product: tbmqUrl('/product/'),
+	// The site root is the product landing — tbmq.io has no separate /product/ page.
+	product: tbmqUrl('/'),
 	docs: tbmqUrl('/docs/'),
 	liveDemo: 'https://demo.tbmq.io/signup',
 } as const;
