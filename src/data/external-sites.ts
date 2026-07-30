@@ -13,7 +13,12 @@
 
 const normalizeOrigin = (origin: string): string => origin.replace(/\/+$/, '');
 
-export const TBMQ_ORIGIN = normalizeOrigin(import.meta.env.TBMQ_SITE_URL ?? 'https://tbmq.io');
+// `import.meta.env` only exists under Vite. The redirects generator
+// (`pnpm generate:redirects`) and Astro's config loader pull this file in under
+// plain Node, where the guard short-circuits to the literal fallback.
+const envSiteUrl = import.meta.env ? import.meta.env.TBMQ_SITE_URL : undefined;
+
+export const TBMQ_ORIGIN = normalizeOrigin(envSiteUrl ?? 'https://tbmq.io');
 
 /**
  * tbmq.io is a TBMQ-only site, so its docs tree carries no `mqtt-broker/`
@@ -21,6 +26,13 @@ export const TBMQ_ORIGIN = normalizeOrigin(import.meta.env.TBMQ_SITE_URL ?? 'htt
  * a 1:1 mapping by prefix substitution.
  */
 const TBMQ_DOCS_ROOT = '/docs/';
+
+/**
+ * Absolute docs root with trailing slash (`https://tbmq.io/docs/`). For redirect
+ * splat templates (`` `${TBMQ_DOCS_BASE}pe/:splat` ``), where `tbmqDocsUrl` can't
+ * be used — it would append a trailing slash after `:splat`.
+ */
+export const TBMQ_DOCS_BASE = `${TBMQ_ORIGIN}${TBMQ_DOCS_ROOT}`;
 
 /** Absolute tbmq.io URL for `path`. Leading and trailing slashes are normalized. */
 export function tbmqUrl(path = '/'): string {
