@@ -1,3 +1,4 @@
+import { tbmqDocsUrl } from '@data/external-sites';
 import type { FaqCategory } from '../types';
 
 export const tbmqPrivateCloudFaq: FaqCategory[] = [
@@ -240,7 +241,7 @@ export const tbmqPrivateCloudFaq: FaqCategory[] = [
 			{
 				id: 'tbmq-additional-limits',
 				question: 'Are there any additional limits?',
-				answer: '<p>Yes, TBMQ Private Cloud subscription has sessions, messages, and storage limits. See subscription <a target="_blank" href="/docs/mqtt-broker/pe/subscription/" rel="noopener noreferrer">documentation</a> for more details.</p>',
+				answer: `<p>Yes, TBMQ Private Cloud subscription has sessions, messages, and storage limits. See subscription <a target="_blank" href="${tbmqDocsUrl('pe/subscription/')}" rel="noopener noreferrer">documentation</a> for more details.</p>`,
 			},
 		],
 	},

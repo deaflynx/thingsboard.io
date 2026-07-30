@@ -1,3 +1,4 @@
+import { tbmqDocsUrl } from '@data/external-sites';
 import type { CommunityEditionData } from './types';
 
 export const tbmqCeData: CommunityEditionData = {
@@ -12,5 +13,5 @@ export const tbmqCeData: CommunityEditionData = {
 		'Community support',
 	],
 	ctaText: 'Install',
-	ctaHref: '/docs/mqtt-broker/installation/',
+	ctaHref: tbmqDocsUrl('installation/'),
 };
