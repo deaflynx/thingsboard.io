@@ -18,7 +18,7 @@
 // Relative import (not `@data/…`): this file is loaded by plain Node in
 // `pnpm generate:redirects` and by Astro's config loader, where tsconfig
 // path aliases don't resolve.
-import { TBMQ_DOCS_BASE, tbmqDocsUrl } from './external-sites.ts';
+import { TBMQ_ORIGIN, TBMQ_URLS } from './external-sites.ts';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -173,8 +173,8 @@ export const CATCH_ALL_REDIRECTS: CatchAllRedirect[] = [
 	},
 	{ oldPrefix: 'pe/mobile', newPrefix: 'mobile/pe', entries: [] },
 	// TBMQ prefixes (mqtt-broker/install, mqtt-broker/pe/install, pe/mqtt-broker/…)
-	// are cross-origin now — `newPrefix` can only express a local prefix, so they
-	// live in the TBMQ cutover group of DYNAMIC_REDIRECTS below.
+	// are cross-origin now — the TBMQ cutover group in DYNAMIC_REDIRECTS below
+	// forwards the whole tree verbatim and tbmq.io resolves these legacy shapes.
 	{
 		oldPrefix: 'user-guide/install/upgrade-instructions',
 		entries: buildUpgradeRedirectEntries('installation/upgrade-instructions'),
@@ -1110,35 +1110,6 @@ export const SINGLE_REDIRECTS: SingleRedirect[] = [
 	{ oldPath: 'paas/eu/samples/analytics/ollama', target: '/docs/paas/eu/user-guide/local-ai-ollama/' },
 	{ oldPath: 'samples/analytics/ollama/nginx', target: '/docs/user-guide/local-ai-ollama/' },
 	{ oldPath: 'samples/analytics/spark-integration-with-thingsboard', target: '/docs/user-guide/ai-models/' },
-	// TBMQ CE redirects
-	{ oldPath: 'mqtt-broker/api', target: tbmqDocsUrl('rest-api/') },
-	{ oldPath: 'mqtt-broker/faq', target: tbmqDocsUrl('why-tbmq/') },
-	{ oldPath: 'mqtt-broker/getting-started-guides/what-is-thingsboard-mqtt-broker', target: tbmqDocsUrl('why-tbmq/') },
-	{ oldPath: 'mqtt-broker/image-gallery', target: tbmqDocsUrl('pe/image-gallery/') },
-	{ oldPath: 'mqtt-broker/install/cluster/helm-cluster-setup-options', target: tbmqDocsUrl('installation/') },
-	{ oldPath: 'mqtt-broker/install/installation-options', target: tbmqDocsUrl('installation/') },
-	{ oldPath: 'mqtt-broker/install/cluster/helm-cluster-upgrading-options', target: tbmqDocsUrl('installation/upgrade-instructions/') },
-	{ oldPath: 'mqtt-broker/install/cluster/resources/upgrade-options/docker-compose-upgrade-tbmq-with-from-version', target: tbmqDocsUrl('installation/upgrade-instructions/') },
-	{ oldPath: 'mqtt-broker/install/cluster/resources/upgrade-options/docker-compose-upgrade-tbmq-without-from-version', target: tbmqDocsUrl('installation/upgrade-instructions/') },
-	{ oldPath: 'mqtt-broker/install/cluster/resources/upgrade-options/k8s-upgrade-tbmq-with-from-version', target: tbmqDocsUrl('installation/upgrade-instructions/') },
-	{ oldPath: 'mqtt-broker/subscription', target: tbmqDocsUrl('pe/subscription/') },
-	{ oldPath: 'mqtt-broker/troubleshooting', target: tbmqDocsUrl('help/') },
-	{ oldPath: 'mqtt-broker/user-guide/ui/mail-server', target: tbmqDocsUrl('user-guide/ui/settings/') },
-	{ oldPath: 'mqtt-broker/white-labeling', target: tbmqDocsUrl('pe/white-labeling/') },
-	// TBMQ PE redirects
-	{ oldPath: 'pe/mqtt-broker/api', target: tbmqDocsUrl('pe/rest-api/') },
-	{ oldPath: 'pe/mqtt-broker/faq', target: tbmqDocsUrl('pe/why-tbmq/') },
-	{ oldPath: 'pe/mqtt-broker/getting-started-guides/what-is-thingsboard-mqtt-broker', target: tbmqDocsUrl('pe/why-tbmq/') },
-	{ oldPath: 'pe/mqtt-broker/image-gallery', target: tbmqDocsUrl('pe/image-gallery/') },
-	{ oldPath: 'pe/mqtt-broker/install/cluster/helm-cluster-setup-options', target: tbmqDocsUrl('pe/installation/') },
-	{ oldPath: 'pe/mqtt-broker/install/installation-options', target: tbmqDocsUrl('pe/installation/') },
-	{ oldPath: 'pe/mqtt-broker/install/cluster/helm-cluster-upgrading-options', target: tbmqDocsUrl('pe/installation/upgrade-instructions/') },
-	{ oldPath: 'pe/mqtt-broker/install/cluster/resources/upgrade-options/docker-compose-upgrade-tbmq-with-from-version', target: tbmqDocsUrl('pe/installation/upgrade-instructions/') },
-	{ oldPath: 'pe/mqtt-broker/install/cluster/resources/upgrade-options/docker-compose-upgrade-tbmq-without-from-version', target: tbmqDocsUrl('pe/installation/upgrade-instructions/') },
-	{ oldPath: 'pe/mqtt-broker/install/cluster/resources/upgrade-options/k8s-upgrade-tbmq-with-from-version', target: tbmqDocsUrl('pe/installation/upgrade-instructions/') },
-	{ oldPath: 'pe/mqtt-broker/troubleshooting', target: tbmqDocsUrl('pe/help/') },
-	{ oldPath: 'pe/mqtt-broker/user-guide/ui/mail-server', target: tbmqDocsUrl('pe/user-guide/ui/settings/') },
-
 	// Services (docs → non-docs)
 	{ oldPath: 'services', target: '/services/' },
 	{ oldPath: 'services/consulting', target: '/services/development-services/' },
@@ -1310,7 +1281,6 @@ export const SINGLE_REDIRECTS: SingleRedirect[] = [
 	{ oldPath: 'user-guide/install', target: '/docs/installation/' },
 	{ oldPath: 'user-guide/install/openbsd', target: '/docs/installation/' },
 	{ oldPath: 'user-guide/install-and-use/install', target: '/docs/installation/' },
-	{ oldPath: 'mqtt-broker/security', target: tbmqDocsUrl('security/overview/') },
 	{ oldPath: 'reference/apis', target: '/docs/apis-and-sdks/' },
 	{ oldPath: 'reference/device-connectivity-api', target: '/docs/apis-and-sdks/' },
 	{ oldPath: 'reference/edge', target: '/docs/edge/' },
@@ -1341,6 +1311,9 @@ export const NON_DOCS_REDIRECTS: Record<string, string> = {
 
 	// Services
 	'/services/support/': '/services/',
+
+	// TBMQ — moved to tbmq.io, whose site root is the product landing
+	'/products/mqtt-broker/': TBMQ_URLS.product,
 
 	// Trendz
 	'/products/trendz/trndz-request-demo/': '/products/trendz/request-demo/',
@@ -1471,16 +1444,15 @@ export const DYNAMIC_REDIRECTS: DynamicRedirectGroup[] = [
 	},
 	{
 		comment:
-			'TBMQ cutover — the docs tree moved to tbmq.io, which carries no mqtt-broker/ ' +
-			'segment. Jekyll-era install/ renames precede the generic splats: Cloudflare ' +
-			'takes the first match and never chains. Deliberately absent from ' +
-			'astro.redirects.ts so the local TBMQ pages stay browsable in dev until deleted.',
+			'TBMQ cutover — the docs tree moved to tbmq.io. Forwarded verbatim ' +
+			'(mqtt-broker/ segment kept): tbmq.io keys its full legacy redirect table ' +
+			'on that shape and strips the segment on its own edge, so every rename ' +
+			'lives in one repo and this side stays a two-rule identity forward. ' +
+			'Deliberately absent from astro.redirects.ts so the local TBMQ pages stay ' +
+			'browsable in dev until deleted.',
 		entries: [
-			{ source: '/docs/mqtt-broker/pe/install/*', target: `${TBMQ_DOCS_BASE}pe/installation/:splat` },
-			{ source: '/docs/pe/mqtt-broker/install/*', target: `${TBMQ_DOCS_BASE}pe/installation/:splat` },
-			{ source: '/docs/mqtt-broker/install/*', target: `${TBMQ_DOCS_BASE}installation/:splat` },
-			{ source: '/docs/pe/mqtt-broker/*', target: `${TBMQ_DOCS_BASE}pe/:splat` },
-			{ source: '/docs/mqtt-broker/*', target: `${TBMQ_DOCS_BASE}:splat` },
+			{ source: '/docs/pe/mqtt-broker/*', target: `${TBMQ_ORIGIN}/docs/pe/mqtt-broker/:splat` },
+			{ source: '/docs/mqtt-broker/*', target: `${TBMQ_ORIGIN}/docs/mqtt-broker/:splat` },
 		],
 	},
 	{
