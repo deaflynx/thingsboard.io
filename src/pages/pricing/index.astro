@@ -37,7 +37,6 @@ import { pcFeatureHeaders, pcFeatureRows } from '@data/pricing/tb-private-cloud-
 import type { PlanCard as PlanCardType } from '@data/pricing/types';
 import FaqSection from '../../components/Pricing/FaqSection.astro';
 import { pricingFaqData } from '@data/pricing/faq';
-import { tbmqDocsUrl } from '@data/external-sites';
 
 import ceIcon from '../../assets/pricing/community-edition-icon.svg?raw';
 import cloudIcon from '../../assets/pricing/cloud-icon.svg?raw';
@@ -397,9 +396,7 @@ const tbmqSubTabs = enrichTabs([
 				<TbmqPrivateCloudCalculator />
 				<div class="tbmq-pc-subscription-cta">
 					<h2>Want to know more about the subscription?</h2>
-					<NButton href={tbmqDocsUrl('pe/subscription/')} target="_blank" variant="outlined" size="md"
-						>See full details</NButton
-					>
+					<NButton href="/docs/mqtt-broker/pe/subscription/" variant="outlined" size="md">See full details</NButton>
 				</div>
 			</section>
 		</div>

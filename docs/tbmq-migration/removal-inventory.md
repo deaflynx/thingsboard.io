@@ -62,6 +62,7 @@ cover every link, so none of them needs a content edit before deletion.
 - `src/routeData.ts` — the TBMQ / TBMQ_PE path branches (L202–203)
 - `src/util/ogContext.ts` — `'mqtt-broker/pe/'` and `'mqtt-broker/'` in `MARKETING_ALLOWLIST` (L23)
 - `src/components/DocLink.astro` — the `TBMQ` / `TBMQ_PE` entries in the `tbBase` map (L21–22)
+- `src/content/_includes/docs/user-guide/integrations/mqtt.mdx` — two `<DocLink product={Products.TBMQ|TBMQ_PE}>` links (`installation/live-demo/`, `security/mqtts`). Unlike plain-href content links (covered by the splats, no edit needed), DocLink resolves the product at build time — dropping the enum entries breaks the build, so re-point these two at `tbmqDocsUrl(…)` in the same change
 - `src/components/VersionSwitcher.astro` — the `Products.TBMQ` family (drop the whole entry; `externalUrl` alone is no longer enough once local editions are gone)
 - `scripts/lint-linkcheck.ts` — the `/docs/mqtt-broker/` → `/docs/mqtt-broker/pe/` `consolidationPatterns` entry (L111)
 
