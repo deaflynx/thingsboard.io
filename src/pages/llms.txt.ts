@@ -91,11 +91,6 @@ const KEY_PAGES: KeyPage[] = [
 		description: 'On-premises edge nodes that synchronize with a central ThingsBoard server.',
 	},
 	{
-		slug: 'docs/mqtt-broker/pe',
-		title: 'TBMQ PE — MQTT Broker',
-		description: 'Standalone MQTT broker engineered for millions of concurrent connections.',
-	},
-	{
 		slug: 'docs/mobile/pe',
 		title: 'ThingsBoard Mobile PE',
 		description: 'Customizable mobile application for end-user IoT solutions.',
