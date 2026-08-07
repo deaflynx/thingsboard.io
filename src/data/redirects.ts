@@ -15,10 +15,8 @@
  *   SINGLE         — one page moved to a different path
  *   GONE           — page removed, redirect to fallback
  */
-// Relative import (not `@data/…`): this file is loaded by plain Node in
-// `pnpm generate:redirects` and by Astro's config loader, where tsconfig
-// path aliases don't resolve.
-import { TBMQ_ORIGIN, TBMQ_URLS } from './external-sites.ts';
+// Staging origin until tbmq.io DNS goes live — swap to https://tbmq.io then.
+const TBMQ_ORIGIN = 'https://tbmq.tbqa.cloud';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -1313,7 +1311,7 @@ export const NON_DOCS_REDIRECTS: Record<string, string> = {
 	'/services/support/': '/services/',
 
 	// TBMQ — moved to tbmq.io, whose site root is the product landing
-	'/products/mqtt-broker/': TBMQ_URLS.product,
+	'/products/mqtt-broker/': `${TBMQ_ORIGIN}/`,
 
 	// Trendz
 	'/products/trendz/trndz-request-demo/': '/products/trendz/request-demo/',
