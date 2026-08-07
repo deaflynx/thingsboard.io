@@ -1,5 +1,3 @@
-import { TBMQ_URLS, tbmqDocsUrl } from '@data/external-sites';
-
 export interface HeroButton {
 	id: string;
 	label: string;
@@ -613,25 +611,26 @@ export const products: ProductData[] = [
 	{
 		id: 'mqtt-broker',
 		title: 'MQTT Broker',
-		description: `<b>TBMQ</b> is a highly scalable and durable <a href="${TBMQ_URLS.product}" target="_blank" rel="noopener noreferrer">MQTT message broker</a> built for real-time data processing across IoT ecosystems of any scale. It efficiently handles millions of concurrent client connections and processes millions of messages per second while maintaining low latency and reliable delivery. Designed for horizontal scalability, TBMQ seamlessly expands across cluster nodes to support massive deployments with millions of connected devices. <a href="${TBMQ_URLS.docs}" target="_blank" rel="noopener noreferrer">Read more<span class="sr-only"> about TBMQ MQTT Broker</span></a>.`,
+		description:
+			'<b>TBMQ</b> is a highly scalable and durable <a href="/products/mqtt-broker/" target="_blank" rel="noopener noreferrer">MQTT message broker</a> built for real-time data processing across IoT ecosystems of any scale. It efficiently handles millions of concurrent client connections and processes millions of messages per second while maintaining low latency and reliable delivery. Designed for horizontal scalability, TBMQ seamlessly expands across cluster nodes to support massive deployments with millions of connected devices. <a href="/docs/mqtt-broker/" target="_blank" rel="noopener noreferrer">Read more<span class="sr-only"> about TBMQ MQTT Broker</span></a>.',
 		buttons: [
 			{
 				id: 'TryItNow_TBMQ_Demo',
 				label: 'Live Demo',
-				href: TBMQ_URLS.liveDemo,
+				href: 'https://demo.tbmq.io/signup',
 				target: '_blank',
 			},
 			{
 				id: 'TryItNow_TBMQ_Install_CE',
 				label: 'Download CE',
-				href: tbmqDocsUrl('installation/'),
+				href: '/docs/mqtt-broker/installation/',
 				target: '_blank',
 				secondary: true,
 			},
 			{
 				id: 'TryItNow_TBMQ_Install_PE',
 				label: 'Start PE Trial',
-				href: tbmqDocsUrl('pe/installation/'),
+				href: '/docs/mqtt-broker/pe/installation/',
 				target: '_blank',
 				secondary: true,
 			},
@@ -652,20 +651,20 @@ export const products: ProductData[] = [
 			[
 				{
 					title: 'Unlimited Horizontal Scaling',
-					href: tbmqDocsUrl('reference/100m-connections-performance-test/'),
+					href: '/docs/mqtt-broker/reference/100m-connections-performance-test/',
 					target: '_blank',
 					description: 'Scale horizontally to manage more than 100M MQTT connections on a single cluster',
 				},
 				{
 					title: 'Million-Message Throughput',
-					href: tbmqDocsUrl('reference/3m-throughput-single-node-performance-test/'),
+					href: '/docs/mqtt-broker/reference/3m-throughput-single-node-performance-test/',
 					target: '_blank',
 					description:
 						'Process millions of messages per second with 1 TBMQ server and single-digit latency',
 				},
 				{
 					title: 'Masterless High Availability',
-					href: tbmqDocsUrl('architecture/'),
+					href: '/docs/mqtt-broker/architecture/',
 					target: '_blank',
 					description: 'Prevent single point of failure with masterless nodes in the cluster',
 				},
@@ -673,20 +672,20 @@ export const products: ProductData[] = [
 			[
 				{
 					title: 'Universal MQTT Support',
-					href: tbmqDocsUrl('getting-started/'),
+					href: '/docs/mqtt-broker/getting-started/',
 					target: '_blank',
 					description: 'MQTT 3.x and 5.0 compatible for a seamless and secure connection experience',
 				},
 				{
 					title: 'Zero Data Loss Guarantee',
-					href: tbmqDocsUrl('architecture/'),
+					href: '/docs/mqtt-broker/architecture/',
 					target: '_blank',
 					description:
 						'Guarantee the persistence and replication of your data to ensure it\'s never lost',
 				},
 				{
 					title: 'K8s & Cloud Agnostic',
-					href: tbmqDocsUrl('installation/'),
+					href: '/docs/mqtt-broker/installation/',
 					target: '_blank',
 					description: 'Deploy in cloud or on-premises using K8s scripts with ease',
 				},
@@ -700,28 +699,28 @@ export const products: ProductData[] = [
 						logo: install('docker-linux-mac.svg'),
 						logoAlt: 'Docker (Linux or Mac OS)',
 						title: 'Docker (Linux or Mac OS)',
-						href: tbmqDocsUrl('installation/docker/'),
+						href: '/docs/mqtt-broker/installation/docker/',
 						target: '_blank',
 					},
 					{
 						logo: install('docker-windows.svg'),
 						logoAlt: 'Docker (Windows)',
 						title: 'Docker (Windows)',
-						href: tbmqDocsUrl('installation/docker-windows/'),
+						href: '/docs/mqtt-broker/installation/docker-windows/',
 						target: '_blank',
 					},
 					{
 						logo: install('docker-compose.svg'),
 						logoAlt: 'Cluster setup with Docker Compose',
 						title: 'Cluster with Docker Compose',
-						href: tbmqDocsUrl('installation/cluster/docker-compose-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/docker-compose-setup/',
 						target: '_blank',
 					},
 					{
 						logo: install('minikube.svg'),
 						logoAlt: 'Cluster setup with Minikube',
 						title: 'Cluster setup with Minikube',
-						href: tbmqDocsUrl('installation/cluster/minikube-cluster-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/minikube-cluster-setup/',
 						target: '_blank',
 					},
 				],
@@ -733,28 +732,28 @@ export const products: ProductData[] = [
 						logo: install('eks.svg'),
 						logoAlt: 'Cluster setup on EKS',
 						title: 'Cluster setup on EKS',
-						href: tbmqDocsUrl('installation/cluster/aws-cluster-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/aws-cluster-setup/',
 						target: '_blank',
 					},
 					{
 						logo: install('azure.svg'),
 						logoAlt: 'Cluster setup on AKS',
 						title: 'Cluster setup on AKS',
-						href: tbmqDocsUrl('installation/cluster/azure-cluster-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/azure-cluster-setup/',
 						target: '_blank',
 					},
 					{
 						logo: install('gcp.svg'),
 						logoAlt: 'Cluster setup on GCP',
 						title: 'Cluster setup on GCP',
-						href: tbmqDocsUrl('installation/cluster/gcp-cluster-setup/'),
+						href: '/docs/mqtt-broker/installation/cluster/gcp-cluster-setup/',
 						target: '_blank',
 					},
 					{
 						logo: install('helm.svg'),
 						logoAlt: 'Cluster setup using Helm',
 						title: 'Cluster setup using Helm',
-						href: tbmqDocsUrl('installation/?installationType=helm'),
+						href: '/docs/mqtt-broker/installation/?installationType=helm',
 						target: '_blank',
 					},
 				],

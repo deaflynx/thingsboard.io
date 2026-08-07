@@ -1,6 +1,5 @@
 ---
 import { Products } from '@models/site.models.ts';
-import { TBMQ_URLS } from '@data/external-sites';
 import { allPages } from '~/content';
 import { getVersionFromURL, switchVersionWithFallback } from '~/util/path-utils';
 import { RELEASE_FAMILIES, familySlug } from '~/models/releases-table';
@@ -42,10 +41,6 @@ interface Family {
 	/** Edition to land on when this family is picked from the product dropdown.
 	 * Defaults to `editions[editions.length - 1]` (Professional/Cloud first). */
 	preferredEdition?: Products;
-	/** When set, picking this family from the dropdown leaves thingsboard.io.
-	 * `editions` still drives which pages belong to the family, so local docs
-	 * for it keep resolving while they exist. */
-	externalUrl?: string;
 }
 
 const FAMILIES: Family[] = [
@@ -107,7 +102,6 @@ const FAMILIES: Family[] = [
 			{ product: Products.TBMQ_PE, label: 'Professional' },
 		],
 		preferredEdition: Products.TBMQ_PE,
-		externalUrl: TBMQ_URLS.docs,
 	},
 	{
 		id: Products.MOBILE,
@@ -259,9 +253,7 @@ const activeRegion = currentFamily.regions?.options.find((r) => r.product === cu
 						<a
 							role="option"
 							class:list={['ps-item', { 'is-active': f.id === currentFamily.id }]}
-							href={f.externalUrl ?? href(preferredOf(f))}
-							target={f.externalUrl ? '_blank' : undefined}
-							rel={f.externalUrl ? 'noopener noreferrer' : undefined}
+							href={href(preferredOf(f))}
 							aria-selected={f.id === currentFamily.id}
 						>
 							<span class:list={['ps-icon-box', { 'ps-icon-box--active': f.id === currentFamily.id }]}>

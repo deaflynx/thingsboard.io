@@ -1,5 +1,3 @@
-import { TBMQ_URLS } from '@data/external-sites';
-
 export interface NavItem {
 	label: string;
 	href?: string;
@@ -13,8 +11,6 @@ export interface SubMenuItem {
 	heading: string;
 	description?: string;
 	linkClass?: string;
-	/** Opens in a new tab. Set for links that leave thingsboard.io. */
-	external?: boolean;
 }
 
 export interface SubMenuGroup {
@@ -102,12 +98,11 @@ export const productsSubmenu: SubMenu = {
 					linkClass: 'mobile-pe-lnk',
 				},
 				{
-					href: TBMQ_URLS.product,
+					href: '/products/mqtt-broker/',
 					icon: '/src/assets/images/landings/nav/tbmq-icon.svg',
 					heading: 'TBMQ',
 					description: 'Scalable MQTT broker',
 					linkClass: 'mqtt-broker-lnk',
-					external: true,
 				},
 				{
 					href: '/products/trendz/',
@@ -408,11 +403,10 @@ export const docsSubmenu: SubMenu = {
 					linkClass: 'mobile-pe-lnk',
 				},
 				{
-					href: TBMQ_URLS.docs,
+					href: '/docs/mqtt-broker/',
 					heading: 'TBMQ',
 					description: 'Scalable MQTT broker',
 					linkClass: 'mqtt-broker-lnk',
-					external: true,
 				},
 				{
 					href: '/docs/trendz/',
