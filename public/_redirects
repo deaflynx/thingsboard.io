@@ -1050,6 +1050,7 @@
 /community/ / 301
 /services/support/ /services/ 301
 /products/mqtt-broker/ https://tbmq.io/ 301
+/resources/tbmq-demo-root-ca.pem https://tbmq.io/resources/tbmq-demo-root-ca.pem 301
 /products/trendz/trndz-request-demo/ /products/trendz/request-demo/ 301
 /images/trendz/trndz-request-demo/ /products/trendz/request-demo/ 301
 /products/paas/billing-info/ /docs/paas/user-guide/billing-info/ 301

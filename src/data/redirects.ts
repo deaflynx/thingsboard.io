@@ -1358,6 +1358,8 @@ export const NON_DOCS_REDIRECTS: Record<string, string> = {
 	// like prod. Its legal children (privacy-policy/, terms-of-use/) stay on
 	// thingsboard.io on purpose — tbmq.io has no equivalents for them yet.
 	'/products/mqtt-broker/': `${TBMQ_ORIGIN}/`,
+	// Demo CA cert removed with the TBMQ docs; the TBMQ site serves its own copy
+	'/resources/tbmq-demo-root-ca.pem': `${TBMQ_ORIGIN}/resources/tbmq-demo-root-ca.pem`,
 
 	// Trendz
 	'/products/trendz/trndz-request-demo/': '/products/trendz/request-demo/',
