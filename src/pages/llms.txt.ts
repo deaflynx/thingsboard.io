@@ -14,7 +14,7 @@ const HEADER = `# ThingsBoard
 - Multi-tenancy architecture supports isolated customer and tenant hierarchies with role-based access control.
 - ThingsBoard Professional Edition (PE) extends CE with white-labeling, solution templates, reporting, advanced RBAC, and integrations.
 - ThingsBoard Cloud (PaaS) is a fully managed cloud offering; ThingsBoard Edge extends the platform to on-premises edge nodes.
-- Additional products: IoT Gateway (protocol bridge for industrial devices), MQTT Broker (TBMQ), Trendz Analytics (AI-driven analytics), Mobile SDK, License Server.`;
+- Additional products: IoT Gateway (protocol bridge for industrial devices), Trendz Analytics (AI-driven analytics), Mobile SDK, License Server. The TBMQ MQTT broker is documented separately at https://tbmq.io.`;
 
 interface KeyPage {
 	slug: string;

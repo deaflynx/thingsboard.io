@@ -1346,6 +1346,8 @@ export const NON_DOCS_REDIRECTS: Record<string, string> = {
 
 	// TBMQ — moved to tbmq.io, whose site root is the product landing
 	'/products/mqtt-broker/': `${TBMQ_ORIGIN}/`,
+	// Demo CA cert removed with the TBMQ docs; the TBMQ site serves its own copy
+	'/resources/tbmq-demo-root-ca.pem': `${TBMQ_ORIGIN}/resources/tbmq-demo-root-ca.pem`,
 
 	// Trendz
 	'/products/trendz/trndz-request-demo/': '/products/trendz/request-demo/',
