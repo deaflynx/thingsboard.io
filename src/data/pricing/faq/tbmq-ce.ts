@@ -1,4 +1,5 @@
 import type { FaqCategory } from '../types';
+import { TBMQ_CONTACT_US_URL } from '@models/tbmq';
 
 export const tbmqCeFaq: FaqCategory[] = [
 	{
@@ -38,7 +39,7 @@ export const tbmqCeFaq: FaqCategory[] = [
 			{
 				id: 'tbmq-ce-migration-pe',
 				question: 'Is it possible to migrate from the Community Edition to the self-managed TBMQ Professional Edition?',
-				answer: '<p>Yes, you can upgrade from TBMQ Community Edition to Professional Edition without losing any data and/or configurations. The upgrade process preserves your existing setup, ensuring a seamless transition. However, please note that any custom modifications made directly to the source code of the Community Edition will be removed during the upgrade process. For more information about the migration procedure, please <a target="_blank" href="/contact-us/?subject=TBMQ" rel="noopener noreferrer">contact us</a>.</p>',
+				answer: `<p>Yes, you can upgrade from TBMQ Community Edition to Professional Edition without losing any data and/or configurations. The upgrade process preserves your existing setup, ensuring a seamless transition. However, please note that any custom modifications made directly to the source code of the Community Edition will be removed during the upgrade process. For more information about the migration procedure, please <a target="_blank" href="${TBMQ_CONTACT_US_URL}" rel="noopener noreferrer">contact us</a>.</p>`,
 			},
 			{
 				id: 'tbmq-ce-clustering',
@@ -136,7 +137,7 @@ export const tbmqCeFaq: FaqCategory[] = [
 			{
 				id: 'tbmq-ce-paid-support',
 				question: 'Can I purchase additional support for the Community Edition?',
-				answer: '<p>Depending on the type of support you are looking for, the TBMQ team may be able to offer certain types of additional support packages. To discuss your unique case and requirements, please <a target="_blank" href="/contact-us/?subject=TBMQ" rel="noopener noreferrer">contact us</a>.</p>',
+				answer: `<p>Depending on the type of support you are looking for, the TBMQ team may be able to offer certain types of additional support packages. To discuss your unique case and requirements, please <a target="_blank" href="${TBMQ_CONTACT_US_URL}" rel="noopener noreferrer">contact us</a>.</p>`,
 			},
 			{
 				id: 'tbmq-ce-help',
@@ -151,7 +152,7 @@ export const tbmqCeFaq: FaqCategory[] = [
 			{
 				id: 'tbmq-ce-dev-services',
 				question: 'Can I pay for additional features to be developed?',
-				answer: '<p>The TBMQ team can propose application configuration services. To discuss your unique case and requirements, please <a target="_blank" href="/contact-us/?subject=TBMQ" rel="noopener noreferrer">contact us</a>.</p>',
+				answer: `<p>The TBMQ team can propose application configuration services. To discuss your unique case and requirements, please <a target="_blank" href="${TBMQ_CONTACT_US_URL}" rel="noopener noreferrer">contact us</a>.</p>`,
 			},
 			{
 				id: 'tbmq-ce-updates',
@@ -161,7 +162,7 @@ export const tbmqCeFaq: FaqCategory[] = [
 			{
 				id: 'tbmq-ce-dev-assist',
 				question: 'Can I get TBMQ developers to help with my Community Edition deployment?',
-				answer: '<p>Yes, you can request such assistance as an additional paid service. Please, <a target="_blank" href="/contact-us/?subject=TBMQ" rel="noopener noreferrer">contact us</a> to discuss how we can help.</p>',
+				answer: `<p>Yes, you can request such assistance as an additional paid service. Please, <a target="_blank" href="${TBMQ_CONTACT_US_URL}" rel="noopener noreferrer">contact us</a> to discuss how we can help.</p>`,
 			},
 			{
 				id: 'tbmq-ce-bug-report',
@@ -192,7 +193,7 @@ export const tbmqCeFaq: FaqCategory[] = [
 			{
 				id: 'tbmq-ce-migration-strategy',
 				question: 'How do I migrate from Community Edition to Enterprise?',
-				answer: '<p>Migration depends on factors such as the version, source code changes, and more. Please <a target="_blank" href="/contact-us/?subject=TBMQ" rel="noopener noreferrer">contact us</a> for personalized suggestions and a clear strategy on how to perform the migration.</p>',
+				answer: `<p>Migration depends on factors such as the version, source code changes, and more. Please <a target="_blank" href="${TBMQ_CONTACT_US_URL}" rel="noopener noreferrer">contact us</a> for personalized suggestions and a clear strategy on how to perform the migration.</p>`,
 			},
 			{
 				id: 'tbmq-ce-pe-trial',
