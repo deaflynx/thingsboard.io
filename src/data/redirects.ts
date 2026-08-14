@@ -15,11 +15,12 @@
  *   SINGLE         — one page moved to a different path
  *   GONE           — page removed, redirect to fallback
  */
-// Staging origin until tbmq.io DNS goes live. The swap is a two-step change:
-// flip this const to https://tbmq.io, then run `pnpm generate:redirects` and
-// commit the regenerated public/_redirects + public/redirects.json — otherwise
-// the edge keeps serving the staging host while this file claims otherwise.
-const TBMQ_ORIGIN = 'https://tbmq.tbqa.cloud';
+// Final TBMQ origin — activated by the tbmq.io DNS cutover. Do not deploy to
+// production before tbmq.io resolves: until then TBMQ redirects 301 to a dead
+// host, which fails loud and self-heals at cutover — unlike a cacheable 301
+// to the tbqa.cloud staging host, which browsers and crawlers would keep
+// following long after the flip.
+const TBMQ_ORIGIN = 'https://tbmq.io';
 
 // tbmq.io is TBMQ-only: its docs tree carries no mqtt-broker/ segment, so
 // thingsboard.io's /docs/mqtt-broker/<path> is /docs/<path> there. `path` is
