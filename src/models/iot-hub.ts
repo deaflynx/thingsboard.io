@@ -249,10 +249,15 @@ export const IOT_HUB_STRINGS = {
 	installDialog: {
 		title: 'Install item',
 		titleConnect: 'Connect item',
+		// Built-in content is already present in every ThingsBoard instance, so
+		// the dialog opens it rather than installing a duplicate.
+		titleOpen: 'Open item',
 		// `\n` is a hard line break, rendered via `white-space: pre-line` to match
 		// the two-line layout in the design.
 		subtitle:
 			'Choose a ThingsBoard instance to install this item into.\nCopy the install link or open it directly in a new tab.',
+		subtitleOpen:
+			'Choose a ThingsBoard instance to open this item in.\nCopy the link or open it directly in a new tab.',
 		closeAriaLabel: 'Close',
 		copy: 'Copy link',
 		copied: 'Copied',
@@ -289,6 +294,10 @@ export const IOT_HUB_STRINGS = {
 	installs: {
 		singular: 'install',
 		plural: 'installs',
+	},
+	builtIn: {
+		/** Appended to the supported-version chip in the detail hero's meta row. */
+		label: 'Built-in',
 	},
 } as const;
 
@@ -469,6 +478,13 @@ export const listingViewSchema = z.object({
 	connectivity: z.array(z.string()).default([]),
 	tags: z.array(z.string()).default([]),
 	installCount: z.number().default(0),
+	// Server-owned and read-only: true when the content already ships inside
+	// ThingsBoard itself (a bundled widget, a SCADA symbol) rather than being
+	// something the Hub installs. A listing is built-in exactly when its member
+	// items are. `.catch` (not `.default`) so an absent *or* null field lands on
+	// false — Astro applies this schema after the loader returns, outside the
+	// try/catch in content.config.ts that would otherwise contain the throw.
+	builtIn: z.boolean().catch(false),
 	createdTime: z.number().nullable().default(null),
 	updatedTime: z.number().nullable().default(null),
 	publishedTime: z.number().nullable(),
@@ -677,5 +693,15 @@ export const buildInstallUrl = (
 
 // `itemType` is `string` (not `IotHubItemType`) because one caller passes a raw
 // value read from a DOM data-attribute.
-export const getInstallVerb = (itemType: string, variant = 'card'): string =>
-	itemType === 'DEVICE' ? (variant === 'hero' ? 'Connect device' : 'Connect') : 'Install';
+//
+// Built-in content already exists in every ThingsBoard instance, so the CTA
+// opens it there instead of installing a second copy — the dialog itself is
+// unchanged, only the wording.
+export const getInstallVerb = (itemType: string, variant = 'card', builtIn = false): string =>
+	builtIn
+		? 'Open'
+		: itemType === 'DEVICE'
+			? variant === 'hero'
+				? 'Connect device'
+				: 'Connect'
+			: 'Install';

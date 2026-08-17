@@ -44,11 +44,17 @@ export function bindListingCard(
 	const title = root.querySelector<HTMLElement>('[data-card-title]');
 	if (title) title.textContent = item.name;
 
-	// Install count.
+	// Install count — dropped for built-in content (it ships with ThingsBoard,
+	// so the counter says nothing useful), along with its leading separator.
 	const installs = root.querySelector<HTMLElement>('[data-card-installs]');
 	if (installs) installs.textContent = formatInstallCount(item.installCount);
 	const installsWrap = root.querySelector<HTMLElement>('[data-card-installs-wrap]');
-	if (installsWrap) installsWrap.title = formatInstalls(item.installCount);
+	if (installsWrap) {
+		installsWrap.title = formatInstalls(item.installCount);
+		installsWrap.hidden = item.builtIn;
+	}
+	const authorDot = root.querySelector<HTMLElement>('[data-card-author-dot]');
+	if (authorDot) authorDot.hidden = item.builtIn;
 
 	// Variant-specific thumb.
 	if (variant === 'big') {
@@ -60,7 +66,7 @@ export function bindListingCard(
 	// Author row.
 	bindAuthor(root, item, showCreator);
 
-	// Install button.
+	// Install button — reads "Open" for content that ships with ThingsBoard.
 	bindInstallButton(root, item);
 }
 
@@ -137,7 +143,13 @@ function bindInstallButton(root: HTMLElement, item: ListingView): void {
 	} else {
 		delete btn.dataset.affiliateId;
 	}
-	const label = getInstallVerb(item.itemType, 'card');
+	// Read back by the install dialog to pick its "open" wording.
+	if (item.builtIn) {
+		btn.dataset.builtIn = 'true';
+	} else {
+		delete btn.dataset.builtIn;
+	}
+	const label = getInstallVerb(item.itemType, 'card', item.builtIn);
 	btn.setAttribute('aria-label', `${label} ${item.name}`);
 	const labelSpan = btn.querySelector('span');
 	if (labelSpan) labelSpan.textContent = label;
