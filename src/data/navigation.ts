@@ -1,3 +1,5 @@
+import { TBMQ_SITE_URL } from '@models/tbmq';
+
 export interface NavItem {
 	label: string;
 	href?: string;
@@ -98,7 +100,7 @@ export const productsSubmenu: SubMenu = {
 					linkClass: 'mobile-pe-lnk',
 				},
 				{
-					href: '/products/mqtt-broker/',
+					href: TBMQ_SITE_URL,
 					icon: '/src/assets/images/landings/nav/tbmq-icon.svg',
 					heading: 'TBMQ',
 					description: 'Scalable MQTT broker',

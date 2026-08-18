@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { TBMQ_SITE_URL } from '@models/tbmq';
 
 const cards = [
 	{
@@ -84,7 +85,7 @@ const cards = [
 		color: '#1f8b4d',
 	},
 	{
-		href: '/products/mqtt-broker/',
+		href: TBMQ_SITE_URL,
 		icon: '/images/products/tbmq-icon.svg',
 		alt: 'TBMQ',
 		title: 'ThingsBoard MQTT Broker',
