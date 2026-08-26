@@ -30,6 +30,7 @@ const { data } = Astro.props;
 				variant="filled"
 				size="sm"
 				class="gtm_button"
+				target={!data.ctaOnclick && data.ctaHref.startsWith('http') ? '_blank' : undefined}
 				onclick={data.ctaOnclick ? `event.preventDefault();${data.ctaOnclick}` : undefined}
 			>
 				{data.ctaText}

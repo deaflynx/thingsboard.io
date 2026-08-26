@@ -1,5 +1,6 @@
 ---
 import { Products } from '@models/site.models.ts';
+import { TBMQ_DOCS_URL } from '@models/tbmq';
 import { allPages } from '~/content';
 import { getVersionFromURL, switchVersionWithFallback } from '~/util/path-utils';
 import { RELEASE_FAMILIES, familySlug } from '~/models/releases-table';
@@ -41,6 +42,10 @@ interface Family {
 	/** Edition to land on when this family is picked from the product dropdown.
 	 * Defaults to `editions[editions.length - 1]` (Professional/Cloud first). */
 	preferredEdition?: Products;
+	/** When set, picking this family from the dropdown leaves thingsboard.io
+	 * (opens in a new tab). Such families have no local docs, so `editions`
+	 * stays empty and the family can never be the current one. */
+	externalUrl?: string;
 }
 
 const FAMILIES: Family[] = [
@@ -90,6 +95,15 @@ const FAMILIES: Family[] = [
 		tagline: 'Bridge any hardware to the cloud',
 		iconId: 'gateway',
 		editions: [{ product: Products.GW, label: 'IoT Gateway' }],
+	},
+	{
+		id: Products.TBMQ,
+		group: 'ecosystem',
+		name: 'MQTT Broker',
+		tagline: 'Reliable messaging for massive fleets',
+		iconId: 'tbmq',
+		editions: [],
+		externalUrl: TBMQ_DOCS_URL,
 	},
 	{
 		id: Products.MOBILE,
@@ -241,7 +255,9 @@ const activeRegion = currentFamily.regions?.options.find((r) => r.product === cu
 						<a
 							role="option"
 							class:list={['ps-item', { 'is-active': f.id === currentFamily.id }]}
-							href={href(preferredOf(f))}
+							href={f.externalUrl ?? href(preferredOf(f))}
+							target={f.externalUrl ? '_blank' : undefined}
+							rel={f.externalUrl ? 'noopener noreferrer' : undefined}
 							aria-selected={f.id === currentFamily.id}
 						>
 							<span class:list={['ps-icon-box', { 'ps-icon-box--active': f.id === currentFamily.id }]}>

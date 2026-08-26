@@ -9,9 +9,16 @@ interface Props {
 }
 
 const { item, iconSize = 24 } = Astro.props;
+
+const isExternal = item.href.startsWith('http');
 ---
 
-<a class={item.linkClass} href={item.href}>
+<a
+	class={item.linkClass}
+	href={item.href}
+	target={isExternal ? '_blank' : undefined}
+	rel={isExternal ? 'noopener noreferrer' : undefined}
+>
 	{item.icon && <NavIcon src={item.icon} size={iconSize} alt={`${item.heading} icon`} />}
 	<div class="sub-text">
 		<span class="item-heading">{item.heading}</span>

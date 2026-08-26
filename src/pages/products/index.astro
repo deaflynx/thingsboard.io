@@ -108,7 +108,13 @@ const cards = [
 		<div class="products-cards">
 			{
 				cards.map((card) => (
-					<a href={card.href} class={`card ${card.cls}`} style={`--hover-color: ${card.color}`}>
+					<a
+						href={card.href}
+						class={`card ${card.cls}`}
+						style={`--hover-color: ${card.color}`}
+						target={card.href.startsWith('http') ? '_blank' : undefined}
+						rel={card.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+					>
 						<img src={card.icon} alt={card.alt} />
 						<h5 class="title">{card.title}</h5>
 						<p>{card.desc}</p>

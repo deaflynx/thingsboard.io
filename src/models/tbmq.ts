@@ -8,6 +8,16 @@
 export const TBMQ_SITE_URL = 'https://tbmq.io/';
 
 /**
+ * TBMQ documentation root on tbmq.io. Its docs tree carries no mqtt-broker/
+ * segment, so thingsboard.io's /docs/mqtt-broker/<path> lives at /docs/<path>
+ * there.
+ */
+export const TBMQ_DOCS_URL = `${TBMQ_SITE_URL}docs/`;
+
+/** Deep link into the TBMQ docs. Pass page paths with their trailing slash (e.g. 'installation/'). */
+export const tbmqDocsUrl = (path: string): string => `${TBMQ_DOCS_URL}${path}`;
+
+/**
  * Contact page with the TBMQ subject pre-selected. The subject value must
  * match an <option> in ContactForm.astro — the prefill silently no-ops on
  * unknown values.
