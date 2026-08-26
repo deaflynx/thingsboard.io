@@ -11,6 +11,10 @@ export enum Products {
 	TRENDZ = 'TRENDZ',
 	MOBILE = 'MOBILE',
 	MOBILE_PE = 'MOBILE_PE',
+	// TBMQ docs moved to tbmq.io; the members are retained deliberately — TBMQ
+	// identifies the external product-selector family (VersionSwitcher), and the
+	// mqtt-broker/ prefixes keep legacy-URL tooling (redirect helpers, OG/meta
+	// maps) able to name the old local tree.
 	TBMQ = 'TBMQ',
 	TBMQ_PE = 'TBMQ_PE',
 }

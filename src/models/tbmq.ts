@@ -1,11 +1,18 @@
 /**
- * TBMQ product site — the landing lives at the site root since the tbmq.io
- * cutover; /products/mqtt-broker/ still builds but is superseded in production
- * by an edge redirect, so internal links must point here directly. src/data/redirects.ts
- * keeps its own private TBMQ_ORIGIN copy: node scripts import it directly and
- * cannot resolve the `@models` alias.
+ * TBMQ product site origin — single source of truth, internal TBMQ links point
+ * at tbmq.io directly. The redirect story lives in src/data/redirects.ts, which
+ * imports this via a plain relative path (its node-script consumers cannot
+ * resolve the `@models` alias).
+ *
+ * Cutover note: do not deploy to production before tbmq.io resolves — until
+ * then TBMQ redirects 301 to a dead host, which fails loud and self-heals at
+ * cutover, unlike a cacheable 301 to the tbqa.cloud staging host that browsers
+ * and crawlers would keep following long after the flip.
  */
-export const TBMQ_SITE_URL = 'https://tbmq.io/';
+export const TBMQ_ORIGIN = 'https://tbmq.io';
+
+/** TBMQ site root (the landing lives at the root), with trailing slash. */
+export const TBMQ_SITE_URL = `${TBMQ_ORIGIN}/`;
 
 /**
  * TBMQ documentation root on tbmq.io. Its docs tree carries no mqtt-broker/
@@ -14,7 +21,12 @@ export const TBMQ_SITE_URL = 'https://tbmq.io/';
  */
 export const TBMQ_DOCS_URL = `${TBMQ_SITE_URL}docs/`;
 
-/** Deep link into the TBMQ docs. Pass page paths with their trailing slash (e.g. 'installation/'). */
+/**
+ * Deep link into the TBMQ docs. `path` is appended verbatim: pass page paths
+ * with their trailing slash (e.g. 'installation/'), or ':splat' for dynamic
+ * redirect rules — the splat capture already carries the original request's
+ * trailing slash.
+ */
 export const tbmqDocsUrl = (path: string): string => `${TBMQ_DOCS_URL}${path}`;
 
 /**

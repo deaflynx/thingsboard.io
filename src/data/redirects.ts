@@ -15,19 +15,10 @@
  *   SINGLE         — one page moved to a different path
  *   GONE           — page removed, redirect to fallback
  */
-// Final TBMQ origin — activated by the tbmq.io DNS cutover. Do not deploy to
-// production before tbmq.io resolves: until then TBMQ redirects 301 to a dead
-// host, which fails loud and self-heals at cutover — unlike a cacheable 301
-// to the tbqa.cloud staging host, which browsers and crawlers would keep
-// following long after the flip.
-const TBMQ_ORIGIN = 'https://tbmq.io';
-
-// tbmq.io is TBMQ-only: its docs tree carries no mqtt-broker/ segment, so
-// thingsboard.io's /docs/mqtt-broker/<path> is /docs/<path> there. `path` is
-// appended verbatim: pass page paths with their trailing slash ('rest-api/'),
-// or ':splat' for dynamic rules — the splat capture already carries the
-// original request's trailing slash.
-const tbmqDocsUrl = (path: string): string => `${TBMQ_ORIGIN}/docs/${path}`;
+// TBMQ origin and docs-URL helper live in src/models/tbmq.ts (single source of
+// truth, DNS-cutover note included). Relative import on purpose: node scripts
+// import this file directly and cannot resolve the `@models` alias.
+import { TBMQ_ORIGIN, tbmqDocsUrl } from '../models/tbmq.ts';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -1351,12 +1342,11 @@ export const NON_DOCS_REDIRECTS: Record<string, string> = {
 	// Services
 	'/services/support/': '/services/',
 
-	// TBMQ — moved to tbmq.io, whose site root is the product landing. This
-	// entry intentionally supersedes src/pages/products/mqtt-broker/index.astro:
-	// Astro drops a file-based route that collides with a redirect route, so the
-	// landing stops being built and dev/preview bounce to the new origin just
-	// like prod. Its legal children (privacy-policy/, terms-of-use/) stay on
-	// thingsboard.io on purpose — tbmq.io has no equivalents for them yet.
+	// TBMQ — moved to tbmq.io, whose site root is the product landing. The old
+	// landing page file and its subtree (MqttBroker components, tbmqNews data,
+	// landing images) are deleted; this rule serves old bookmarks and inbound
+	// links in every mode. Its legal children (privacy-policy/, terms-of-use/)
+	// stay on thingsboard.io on purpose — tbmq.io has no equivalents for them yet.
 	'/products/mqtt-broker/': `${TBMQ_ORIGIN}/`,
 	// Demo CA cert removed with the TBMQ docs; the TBMQ site serves its own copy
 	'/resources/tbmq-demo-root-ca.pem': `${TBMQ_ORIGIN}/resources/tbmq-demo-root-ca.pem`,
@@ -1493,14 +1483,16 @@ export const DYNAMIC_REDIRECTS: DynamicRedirectGroup[] = [
 			'TBMQ cutover — the docs tree moved to tbmq.io, which carries no mqtt-broker/ ' +
 			'segment, so the segment is stripped here and every URL resolves in one hop. ' +
 			'Jekyll-era install/ renames precede the generic splats: Cloudflare takes the ' +
-			'first match and never chains. Only these five splats are dev-exempt (kept out ' +
-			'of astro.redirects.ts so the local TBMQ docs stay browsable in dev until ' +
-			'deleted) — the TBMQ single redirects and /products/mqtt-broker/ reach dev via ' +
-			'redirects.json / NON_DOCS_REDIRECTS, but none of those sources is a local page. ' +
-			'Caveat: lint-linkcheck replays _redirects before its on-disk lookup, so ' +
-			'internal /docs/mqtt-broker/… links now resolve off-origin and are no longer ' +
-			'existence-checked — the follow-up deletion PR must repoint the remaining ' +
-			'local TBMQ links itself, linkcheck will not flag them.',
+			'first match and never chains. These five splats are absent from ' +
+			'astro.redirects.ts because Astro cannot express them — it never substitutes ' +
+			'params into external redirect targets (astro@6.3.8 core/redirects/render.js, ' +
+			'resolveRedirectTarget returns external string targets verbatim); ' +
+			'src/middleware.ts replays them in `pnpm dev` instead. No local page depends ' +
+			'on them anyway: every local /docs/mqtt-broker/… link (nav, docs selector, ' +
+			'installations, pricing, blog posts) points straight at tbmq.io. Caveat: ' +
+			'lint-linkcheck replays _redirects before its on-disk lookup, so any future ' +
+			'/docs/mqtt-broker/… link would resolve off-origin unchecked — grep for the ' +
+			'prefix before adding one.',
 		entries: [
 			{ source: '/docs/mqtt-broker/pe/install/*', target: tbmqDocsUrl('pe/installation/:splat') },
 			{ source: '/docs/pe/mqtt-broker/install/*', target: tbmqDocsUrl('pe/installation/:splat') },
