@@ -1240,7 +1240,7 @@ const tbmqSubTabs = enrichTabs([
 				if (calcLink) {
 					e.preventDefault();
 					const which = calcLink.dataset.openCalc;
-					const fnName = which === 'pc' ? 'openTbPcCalc' :  'openTbPaygCalc';
+					const fnName = which === 'pc' ? 'openTbPcCalc' : 'openTbPaygCalc';
 					(window as any)[fnName]?.();
 					window.scrollTo({ top: 0, behavior: 'smooth' });
 				}
