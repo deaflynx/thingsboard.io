@@ -1,6 +1,7 @@
 ---
 import { Products } from '@models/site.models.ts';
 import { TBMQ_DOCS_URL } from '@models/tbmq';
+import { externalLinkAttrs } from '@util/external-links';
 import { allPages } from '~/content';
 import { getVersionFromURL, switchVersionWithFallback } from '~/util/path-utils';
 import { RELEASE_FAMILIES, familySlug } from '~/models/releases-table';
@@ -29,12 +30,16 @@ interface Region {
 	label: string;
 	subtitle: string;
 }
-interface Family {
+interface FamilyBase {
 	id: Products;
 	group: Group;
 	name: string;
 	tagline: string;
 	iconId: string;
+}
+
+/** A family whose docs live on this site. */
+interface LocalFamily extends FamilyBase {
 	editions: Edition[];
 	/** When defined, region row + popover render whenever the active edition
 	 * matches one of `options[].product`. */
@@ -42,11 +47,20 @@ interface Family {
 	/** Edition to land on when this family is picked from the product dropdown.
 	 * Defaults to `editions[editions.length - 1]` (Professional/Cloud first). */
 	preferredEdition?: Products;
-	/** When set, picking this family from the dropdown leaves thingsboard.io
-	 * (opens in a new tab). Such families have no local docs, so `editions`
-	 * stays empty and the family can never be the current one. */
-	externalUrl?: string;
+	externalUrl?: never;
 }
+
+/** A family whose docs moved off-site: picking it from the dropdown leaves
+ * thingsboard.io (opens in a new tab). Structurally has no editions, so it
+ * can never be the current family. */
+interface ExternalFamily extends FamilyBase {
+	externalUrl: string;
+	editions?: never;
+	regions?: never;
+	preferredEdition?: never;
+}
+
+type Family = LocalFamily | ExternalFamily;
 
 const FAMILIES: Family[] = [
 	{
@@ -102,7 +116,6 @@ const FAMILIES: Family[] = [
 		name: 'MQTT Broker',
 		tagline: 'Reliable messaging for massive fleets',
 		iconId: 'tbmq',
-		editions: [],
 		externalUrl: TBMQ_DOCS_URL,
 	},
 	{
@@ -145,10 +158,11 @@ const SECTIONS: { label: string; group: Group }[] = [
 // State derivation
 // ────────────────────────────────────────────────────────────────────────────
 const currentProduct = getVersionFromURL(Astro.url.pathname);
+const localFamilies = FAMILIES.filter((f): f is LocalFamily => f.externalUrl === undefined);
 const currentFamily =
-	FAMILIES.find((f) => f.editions.some((e) => e.product === currentProduct)) ??
+	localFamilies.find((f) => f.editions.some((e) => e.product === currentProduct)) ??
 	// If currentProduct is a region variant (PAAS_EU), find the family by region match
-	FAMILIES.find((f) => f.regions?.options.some((r) => r.product === currentProduct))!;
+	localFamilies.find((f) => f.regions?.options.some((r) => r.product === currentProduct))!;
 
 // Build the existing-pages set used by switchVersionWithFallback (incl. dynamic pages).
 const existingPageIds = new Set(allPages.map((p) => p.id));
@@ -168,7 +182,7 @@ for (const fam of UPGRADE_FAMILIES) {
 
 const href = (target: Products) => switchVersionWithFallback(Astro.url.pathname, target, existingPageIds);
 
-const preferredOf = (f: Family) => f.preferredEdition ?? f.editions[f.editions.length - 1]!.product;
+const preferredOf = (f: LocalFamily) => f.preferredEdition ?? f.editions[f.editions.length - 1]!.product;
 
 // Edition pill is "active" if its product matches current OR if it's the
 // regional trigger and current is one of its region variants (so the Cloud
@@ -251,36 +265,41 @@ const activeRegion = currentFamily.regions?.options.find((r) => r.product === cu
 			SECTIONS.map((section) => (
 				<>
 					<div class="ps-section-label">{section.label}</div>
-					{FAMILIES.filter((f) => f.group === section.group).map((f) => (
-						<a
-							role="option"
-							class:list={['ps-item', { 'is-active': f.id === currentFamily.id }]}
-							href={f.externalUrl ?? href(preferredOf(f))}
-							target={f.externalUrl ? '_blank' : undefined}
-							rel={f.externalUrl ? 'noopener noreferrer' : undefined}
-							aria-selected={f.id === currentFamily.id}
-						>
-							<span class:list={['ps-icon-box', { 'ps-icon-box--active': f.id === currentFamily.id }]}>
-								<span class="ps-icon" set:html={getIcon(f.iconId)} />
-							</span>
-							<span class="ps-item-text">
-								<span class="ps-item-name">{f.name}</span>
-								<span class="ps-item-tagline">{f.tagline}</span>
-							</span>
-							{f.id === currentFamily.id && (
-								<svg class="ps-check" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-									<path
-										d="M4.5 10.5L8 14L15.5 6.5"
-										stroke="currentColor"
-										stroke-width="1.67"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										fill="none"
-									/>
-								</svg>
-							)}
-						</a>
-					))}
+					{FAMILIES.filter((f) => f.group === section.group).map((f) => {
+						const itemHref = f.externalUrl !== undefined ? f.externalUrl : href(preferredOf(f));
+						return (
+							<a
+								role="option"
+								class:list={['ps-item', { 'is-active': f.id === currentFamily.id }]}
+								href={itemHref}
+								{...externalLinkAttrs(itemHref)}
+								aria-label={
+									f.externalUrl ? `${f.name} docs (opens ${new URL(f.externalUrl).host} in a new tab)` : undefined
+								}
+								aria-selected={f.id === currentFamily.id}
+							>
+								<span class:list={['ps-icon-box', { 'ps-icon-box--active': f.id === currentFamily.id }]}>
+									<span class="ps-icon" set:html={getIcon(f.iconId)} />
+								</span>
+								<span class="ps-item-text">
+									<span class="ps-item-name">{f.name}</span>
+									<span class="ps-item-tagline">{f.tagline}</span>
+								</span>
+								{f.id === currentFamily.id && (
+									<svg class="ps-check" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+										<path
+											d="M4.5 10.5L8 14L15.5 6.5"
+											stroke="currentColor"
+											stroke-width="1.67"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											fill="none"
+										/>
+									</svg>
+								)}
+							</a>
+						);
+					})}
 				</>
 			))
 		}

@@ -11,6 +11,7 @@ interface Props {
 	pill?: boolean;
 	fullWidth?: boolean;
 	target?: string;
+	rel?: string;
 	ariaLabel?: string;
 	[key: string]: any;
 }
@@ -27,6 +28,7 @@ const {
 	pill = false,
 	fullWidth = false,
 	target,
+	rel,
 	ariaLabel,
 	...attrs
 } = Astro.props;
@@ -52,7 +54,7 @@ const classes = [
 			id={id}
 			class={classes}
 			target={target}
-			rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+			rel={rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined)}
 			aria-label={ariaLabel}
 			{...attrs}
 		>

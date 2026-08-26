@@ -1483,11 +1483,10 @@ export const DYNAMIC_REDIRECTS: DynamicRedirectGroup[] = [
 			'TBMQ cutover — the docs tree moved to tbmq.io, which carries no mqtt-broker/ ' +
 			'segment, so the segment is stripped here and every URL resolves in one hop. ' +
 			'Jekyll-era install/ renames precede the generic splats: Cloudflare takes the ' +
-			'first match and never chains. These five splats are edge-only: Astro cannot ' +
-			'express them in astro.redirects.ts — it never substitutes params into ' +
-			'external redirect targets (astro@6.3.8 core/redirects/render.js, ' +
-			'resolveRedirectTarget returns external string targets verbatim) — so a ' +
-			'hand-typed old TBMQ doc URL 404s in `pnpm dev` while 301-ing in production. ' +
+			'first match and never chains. These five splats are edge-only: Astro does ' +
+			'not substitute params into external redirect targets, so astro.redirects.ts ' +
+			'cannot express them and a hand-typed old TBMQ doc URL 404s in `pnpm dev` ' +
+			'while 301-ing in production. ' +
 			'That is acceptable because no local page depends on them: every local ' +
 			'/docs/mqtt-broker/… link (nav, docs selector, installations, pricing, blog ' +
 			'posts) points straight at tbmq.io. Caveat: lint-linkcheck replays _redirects ' +

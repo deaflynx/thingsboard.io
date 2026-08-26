@@ -1,6 +1,7 @@
 ---
 import NavIcon from '@components/Landing/NavIcon.astro';
 import type { SubMenuItem } from '@data/navigation';
+import { externalLinkAttrs } from '@util/external-links';
 
 interface Props {
 	item: SubMenuItem;
@@ -9,16 +10,9 @@ interface Props {
 }
 
 const { item, iconSize = 24 } = Astro.props;
-
-const isExternal = item.href.startsWith('http');
 ---
 
-<a
-	class={item.linkClass}
-	href={item.href}
-	target={isExternal ? '_blank' : undefined}
-	rel={isExternal ? 'noopener noreferrer' : undefined}
->
+<a class={item.linkClass} href={item.href} {...externalLinkAttrs(item.href)}>
 	{item.icon && <NavIcon src={item.icon} size={iconSize} alt={`${item.heading} icon`} />}
 	<div class="sub-text">
 		<span class="item-heading">{item.heading}</span>
