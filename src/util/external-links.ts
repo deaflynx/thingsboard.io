@@ -8,10 +8,13 @@
 export const isExternalHref = (href: string): boolean => /^https?:\/\//.test(href);
 
 /**
- * target/rel pair for the off-site link policy. Spread it as the LAST
- * attributes of the `<a>`: Astro resolves duplicate attributes last-one-wins,
- * so placing the spread last keeps the derived policy authoritative over any
- * earlier explicit target/rel at the call site.
+ * target/rel pair for the off-site link policy. This spread is the *only*
+ * source of target/rel at a call site — never pass either explicitly
+ * alongside it, in any position. Astro merges duplicate attributes
+ * last-one-wins for components, but on a native element it appends the spread
+ * verbatim, emitting the attribute twice; the HTML parser then keeps the
+ * *first* copy, so an explicit target would silently beat the derived one.
+ * Spread last by convention, so every call site reads the same way.
  */
 export const externalLinkAttrs = (href: string | undefined): { target?: '_blank'; rel?: string } =>
 	href !== undefined && isExternalHref(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {};
