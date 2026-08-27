@@ -3,7 +3,6 @@ import { Icon } from 'astro-icon/components';
 import NButton from '../Landing/NButton.astro';
 import PlanFeatureItem from './PlanFeatureItem.astro';
 import type { PlanCard as PlanCardType } from '@data/pricing/types';
-import { externalLinkAttrs } from '@util/external-links';
 
 interface Props {
 	plan: PlanCardType;
@@ -47,7 +46,6 @@ function formatPrice(price: number | null, currency: string): string {
 		variant={plan.ctaPrimary ? 'filled' : 'outlined'}
 		size="sm"
 		fullWidth
-		{...externalLinkAttrs(plan.ctaHref)}
 		id={plan.gtmId}
 		class={`plan-card-cta${plan.gtmId ? ' gtm_button' : ''}`}
 		data-product-id={plan.productId}

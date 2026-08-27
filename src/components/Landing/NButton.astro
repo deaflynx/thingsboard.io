@@ -1,4 +1,6 @@
 ---
+import { isExternalHref, relForTarget } from '@util/external-links';
+
 interface Props {
 	variant?: 'filled' | 'outlined' | 'text' | 'elevated' | 'tonal';
 	color?: 'primary' | 'warning' | 'danger' | 'success' | 'white';
@@ -33,6 +35,11 @@ const {
 	...attrs
 } = Astro.props;
 
+// Off-site link policy applied from the component's own href, so call sites
+// don't have to name the href twice; explicit target/rel props win.
+const resolvedTarget = target ?? (href !== undefined && isExternalHref(href) ? '_blank' : undefined);
+const resolvedRel = rel ?? relForTarget(resolvedTarget).rel;
+
 const classes = [
 	'n-button',
 	`n-button--${variant}`,
@@ -49,15 +56,7 @@ const classes = [
 
 {
 	href ? (
-		<a
-			href={href}
-			id={id}
-			class={classes}
-			target={target}
-			rel={rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined)}
-			aria-label={ariaLabel}
-			{...attrs}
-		>
+		<a href={href} id={id} class={classes} target={resolvedTarget} rel={resolvedRel} aria-label={ariaLabel} {...attrs}>
 			<slot />
 		</a>
 	) : (

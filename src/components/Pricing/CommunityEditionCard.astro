@@ -2,7 +2,6 @@
 import { Icon } from 'astro-icon/components';
 import NButton from '../Landing/NButton.astro';
 import type { CommunityEditionData } from '@data/pricing/types.ts';
-import { externalLinkAttrs } from '@util/external-links';
 
 interface Props {
 	data: CommunityEditionData;
@@ -26,7 +25,7 @@ const { data } = Astro.props;
 			))}
 		</ul>
 		<div class="ce-card-actions">
-			<NButton href={data.ctaHref} variant="filled" size="sm" class="gtm_button" {...externalLinkAttrs(data.ctaHref)}>
+			<NButton href={data.ctaHref} variant="filled" size="sm" class="gtm_button">
 				{data.ctaText}
 			</NButton>
 		</div>

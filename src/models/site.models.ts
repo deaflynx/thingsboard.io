@@ -11,10 +11,6 @@ export enum Products {
 	TRENDZ = 'TRENDZ',
 	MOBILE = 'MOBILE',
 	MOBILE_PE = 'MOBILE_PE',
-	// TBMQ docs moved to tbmq.io. TBMQ stays load-bearing as the docs product
-	// selector's external family id (VersionSwitcher); TBMQ_PE and the
-	// mqtt-broker/ entries in exhaustive Record<Products, …> maps are enum
-	// fallout pending cleanup — nothing resolves to these products any more.
 	TBMQ = 'TBMQ',
 	TBMQ_PE = 'TBMQ_PE',
 }
