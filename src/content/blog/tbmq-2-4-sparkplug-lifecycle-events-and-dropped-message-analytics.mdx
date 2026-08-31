@@ -5,7 +5,7 @@ date: 2026-08-28
 updatedDate: 2026-08-28
 author: dlandiak
 categories: ['updates']
-featuredImage: '/images/blog/tbmq-2-4-sparkplug-support-client-lifecycle-events-and-dropped-message-analytics/cover.webp'
+featuredImage: '/images/blog/tbmq-2-4-sparkplug-lifecycle-events-and-dropped-message-analytics/cover.webp'
 featuredImageAlt: 'TBMQ 2.4 release'
 draft: false
 ---
@@ -29,7 +29,7 @@ Let's take a closer look at each change, starting with Community Edition.
 
 ### Sparkplug 3.0 aware MQTT server
 
-![TBMQ republishing a Sparkplug NBIRTH message to the $sparkplug/certificates topic with the retain flag set](/images/blog/tbmq-2-4-sparkplug-support-client-lifecycle-events-and-dropped-message-analytics/feature-sparkplug.webp)
+![TBMQ republishing a Sparkplug NBIRTH message to the $sparkplug/certificates topic with the retain flag set](/images/blog/tbmq-2-4-sparkplug-lifecycle-events-and-dropped-message-analytics/feature-sparkplug.webp)
 
 Sparkplug B is the de facto payload and topic specification for MQTT in industrial automation — the layer that turns a generic broker into something a SCADA system, a historian, or an MES can plug into without a bespoke integration for every edge node.
 
@@ -48,7 +48,7 @@ The behavior is built into the publish path and needs no configuration. Republis
 
 ### Client lifecycle events for integrations
 
-![TBMQ integration configuration with lifecycle event types selected alongside topic filters](/images/blog/tbmq-2-4-sparkplug-support-client-lifecycle-events-and-dropped-message-analytics/feature-lifecycle-events.webp)
+![TBMQ integration configuration with lifecycle event types selected alongside topic filters](/images/blog/tbmq-2-4-sparkplug-lifecycle-events-and-dropped-message-analytics/feature-lifecycle-events.webp)
 
 [TBMQ 2.1](https://tbmq.io/docs/releases/#v210-april-29-2025) introduced embedded integrations — HTTP, Kafka, and MQTT targets that forward matching messages out of the broker without a separate bridge process. Until now, an integration could forward *messages* and nothing else: everything about the clients producing those messages stayed inside TBMQ.
 
@@ -120,7 +120,7 @@ TBMQ PE 2.4 inherits every change above and adds a major PE-exclusive capability
 
 ### Dropped message analytics
 
-![TBMQ PE dropped messages page with the analytics view showing drops by reason, top topics, and top clients](/images/blog/tbmq-2-4-sparkplug-support-client-lifecycle-events-and-dropped-message-analytics/feature-dropped-messages.webp)
+![TBMQ PE dropped messages page with the analytics view showing drops by reason, top topics, and top clients](/images/blog/tbmq-2-4-sparkplug-lifecycle-events-and-dropped-message-analytics/feature-dropped-messages.webp)
 
 `droppedMsgs_total` tells you *that* messages were lost and at what rate. It cannot tell you which client, which topic, or why — and those are the only three things that matter when you are trying to stop the loss.
 
