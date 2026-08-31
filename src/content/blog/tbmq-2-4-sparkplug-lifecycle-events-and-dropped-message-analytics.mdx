@@ -78,7 +78,7 @@ See the [client lifecycle events](https://tbmq.io/docs/integrations/#client-life
 
 ### A rebuilt metrics surface
 
-2.4 is the release where TBMQ's Prometheus output stops being a byproduct of the code that emits it and starts being something you can build dashboards on.
+2.4 broadens TBMQ's Prometheus output and standardizes its shape — wider coverage of the publish and connection paths, and metric names and tags that select and aggregate the way Prometheus expects.
 
 New and reworked series:
 
@@ -126,7 +126,7 @@ TBMQ PE 2.4 inherits every change above and adds a major PE-exclusive capability
 
 TBMQ PE 2.4 adds a **Dropped messages** page that persists every permanent drop together with its cause. Recording is on by default and can be turned off with `MQTT_DROPPED_MSG_ENABLED=false`.
 
-**What gets recorded.** Only a *permanent* loss — a message the broker will not retry. A QoS 1 or 2 message addressed to a persistent session is not counted when delivery fails, because it stays recoverable from Kafka (APPLICATION clients) or Redis (DEVICE clients); if the broker eventually gives up on those retries, the give-up is recorded once. QoS 0 is counted even for a persistent session, since it is never stored. Retained messages are never counted.
+**What gets recorded.** Only a *permanent* loss — a message the broker will not retry. A QoS 1 or 2 message addressed to a persistent session is not counted when delivery fails, because it stays recoverable from Kafka (APPLICATION clients) or Redis (DEVICE clients); if the broker eventually gives up on those retries, the give-up is recorded once. QoS 0 is counted even for a persistent session, since it is never stored.
 
 Drops are aggregated rather than logged one by one: everything sharing the same client ID, reason, topic, and direction collapses into a single row with a running count and first/last timestamps. Each row also carries a **direction** — **Reception** (lost on the way into the broker, keyed by the publisher) or **Delivery** (lost on the way out, keyed by the intended subscriber).
 
@@ -147,8 +147,6 @@ Drops are aggregated rather than logged one by one: everything sharing the same 
 Those two rollups are what separate failure shapes the flat table cannot. A table row is a single client-and-topic pairing, so one dead topic published to by a thousand clients fills the list with a thousand near-identical rows. The same situation is *one* **Top topics** row with a client count of a thousand — a subscriber-side problem, a subscription never created or created on the wrong filter. The mirror image, one **Top clients** row with a high topic count, is a publisher-side problem: one client publishing where nothing subscribes.
 
 The filter travels between the two views, topic and client ID each support **Contains** and **Exact** match modes, and clicking any value in a details dialog or a rollup row drills straight through to the matching set.
-
-**Accurate attribution.** Two cases that used to distort the numbers are now handled: a message published with an MQTT 5 topic alias is recorded against its real topic, and a publish refused for a shared subscription is reported as a single event rather than once per subscriber — so one publish reads as one entry.
 
 Entries are not kept forever. A cleanup job runs hourly and applies both an age limit (`MQTT_DROPPED_MSG_RETENTION_DAYS`, 7 by default, measured from the *last* occurrence so a recurring drop stays visible) and a row cap as a safety net.
 
@@ -173,6 +171,6 @@ If you find TBMQ useful, support the project by starring the [TBMQ GitHub reposi
   description="Dropped message analytics, audit logs, SSO role mapping, white labeling, RBAC, and more — available as a 30-day trial or an upgrade from TBMQ CE."
   buttons={[
     { text: "Try 30 days for free", href: "/pricing/?section=tbmq-options&product=tbmq-pe" },
-    { text: "Upgrade from CE", href: "https://tbmq.io/docs/installation/upgrade-instructions/", variant: "outline" }
+    { text: "Upgrade from CE", href: "https://tbmq.io/docs/pe/installation/upgrade-instructions/#upgrade-from-tbmq-to-tbmq-pe", variant: "outline" }
   ]}
 />
