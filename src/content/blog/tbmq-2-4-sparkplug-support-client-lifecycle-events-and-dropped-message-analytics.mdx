@@ -1,6 +1,6 @@
 ---
 title: 'TBMQ 2.4: Sparkplug support, client lifecycle events, and dropped message analytics'
-description: 'TBMQ 2.4 release: Sparkplug 3.0 aware MQTT server, client lifecycle events for integrations, a reworked cluster-wide throughput quota, a rebuilt metrics surface, and Professional Edition dropped message analytics.'
+description: 'TBMQ 2.4 release: Sparkplug 3.0 aware MQTT server, client lifecycle events for integrations, a rebuilt metrics surface, and Professional Edition dropped message analytics.'
 date: 2026-08-28
 updatedDate: 2026-08-28
 author: dlandiak
@@ -11,7 +11,7 @@ draft: false
 ---
 import BlogCTA from '~/components/Blog/BlogCTA.astro';
 
-We're excited to announce the release of TBMQ 2.4.0 ([Community Edition](https://tbmq.io/docs/releases/#v240-august-27-2026) / [Professional Edition](https://tbmq.io/docs/pe/releases/#v240PE)). This version broadens the protocols and event streams TBMQ speaks to the rest of your stack, reworks how the broker meters its own throughput, and — in the Professional Edition — turns the drop counters into an investigation tool.
+We're excited to announce the release of TBMQ 2.4.0 ([Community Edition](https://tbmq.io/docs/releases/#v240-august-27-2026) / [Professional Edition](https://tbmq.io/docs/pe/releases/#v240PE)). This version broadens the protocols and event streams TBMQ speaks to the rest of your stack, rebuilds the metrics surface you monitor it with, and — in the Professional Edition — turns the drop counters into an investigation tool.
 
 Here's what's new in 2.4 across both editions:
 
@@ -19,7 +19,6 @@ Here's what's new in 2.4 across both editions:
 | ---------------------------------------- | :-------: | :----------: |
 | Sparkplug 3.0 aware MQTT server          |     ✓     |       ✓      |
 | Client lifecycle events for integrations |     ✓     |       ✓      |
-| Cluster-wide throughput quota rework     |     ✓     |       ✓      |
 | Rebuilt Prometheus metrics surface       |     ✓     |       ✓      |
 | Java 25 and Angular 21                   |     ✓     |       ✓      |
 | Dropped message analytics                |     —     |       ✓      |
@@ -77,27 +76,6 @@ Events are best-effort hints by design, deliberately weaker than message deliver
 
 See the [client lifecycle events](https://tbmq.io/docs/integrations/#client-lifecycle-events) documentation for the full payload schema and configuration.
 
-### Cluster-wide throughput quota, reworked
-
-TBMQ has had a cluster-wide throughput quota for several releases, but it was charged after the broker had already committed to the work. 2.4 moves the charge to **admission** — the publish is priced when it is processed, before it is stored — and rebuilds the accounting around a leased Redis token bucket shared by every node.
-
-The new model prices a publish as `1 + fanout`:
-
-- **1 packet** for the incoming message itself, plus
-- **1 packet** for every persistent subscriber, shared subscription group, and integration it is routed to.
-
-The bill is computed at publish time and does not depend on whether those subscribers happen to be online. Once a message has been charged and stored, delivery is free: a persistent session that reconnects after hours offline receives its entire backlog at no further cost, and QoS 1/2 retransmissions cost nothing. Delivery to a non-persistent subscriber is charged as it is sent — nothing was stored, so for those clients delivery *is* admission — and a retained message sent to a client that subscribes later is charged on `SUBSCRIBE`.
-
-When the budget runs out, MQTT 5.0 publishers get reason code `0x97` *Quota exceeded* in the `PUBACK` or `PUBREC` and keep their session; MQTT 3.x publishers are disconnected, since 3.x has no way to signal a rejected publish. Copies for subscribers past the remaining budget are never stored. Everything refused is counted in `droppedMsgs`.
-
-**Why it matters**
-
-Charging at admission means the quota only ever sheds work the broker has not yet acknowledged. A message that is already durable is never discarded to stay inside budget — the failure mode is a clean rejection at the edge instead of silent loss further down the pipeline.
-
-The shared bucket also has to survive Redis being briefly unreachable. When a draw fails, the quota keeps granting rather than refusing traffic it cannot price, but that opening is bounded by a grace period measured from the first failed draw of an outage — later failures don't extend it, and any successful draw resets it. Past the grace, a node spends only the tokens it actually drew and then refuses. In practice a Redis Cluster or Sentinel failover passes without a single refused publish, and every failed draw increments `throughputQuotaDegraded_total` so the degraded window is visible in your dashboards.
-
-In Community Edition the quota is opt-in (`MQTT_TOTAL_RATE_LIMITS_ENABLED`, disabled by default) and you size the bucket yourself. Full details, including how to size a bucket around your widest fan-out, are in the [backpressure guide](https://tbmq.io/docs/user-guide/backpressure/#cluster-wide-throughput-quota).
-
 ### A rebuilt metrics surface
 
 2.4 is the release where TBMQ's Prometheus output stops being a byproduct of the code that emits it and starts being something you can build dashboards on.
@@ -138,7 +116,7 @@ The release also includes a number of narrower updates:
 
 ## Professional Edition
 
-TBMQ PE 2.4 inherits every change above and adds the following PE-exclusive capabilities.
+TBMQ PE 2.4 inherits every change above and adds a major PE-exclusive capability of its own.
 
 ### Dropped message analytics
 
@@ -176,16 +154,6 @@ Entries are not kept forever. A cleanup job runs hourly and applies both an age 
 
 The [dropped messages](https://tbmq.io/docs/pe/user-guide/dropped-messages/) guide covers the table, the analytics view, every reason, and the retention settings in full.
 
-### Throughput and licensing improvements
-
-The quota rework above lands differently in PE, where the cluster-wide budget *is* your subscription's **Throughput (msg/sec)** tier — always enforced, and not something configuration can enable, disable, or enlarge. 2.4 sharpens the operator experience around it:
-
-- **Licensed throughput visibility.** The *licensed throughput reached* indicator now tracks actual message refusals, so it stays consistent with the dropped-message metric instead of raising on conditions that never cost you a message.
-- **Resilient throughput accounting.** Accounting stays reliable across a brief cache outage, such as a Redis Cluster or Sentinel failover.
-- **Burst handling under load.** Short traffic bursts are admitted whenever cluster budget is available.
-- **Immediate license capacity changes.** Rate limits pick up the current capacity as soon as a license changes, instead of waiting for the next bucket cycle.
-- **White labeling upgrade prompt.** Configuring white labeling on a subscription that doesn't include it now opens a clear upgrade dialog instead of failing silently.
-
 ## Upgrading
 
 The Community Edition upgrade only records the new schema version — no table is created or altered, and no data is migrated. The PE upgrade additionally creates the `dropped_msg` table and its index.
@@ -194,7 +162,7 @@ The one thing to plan for is the [metric renames](#breaking-change-metric-and-ta
 
 ## Final words
 
-TBMQ 2.4 pushes the broker outward and inward at once. Outward: Sparkplug 3.0 awareness makes TBMQ a first-class citizen in industrial deployments, and client lifecycle events give the rest of your platform a live feed of what the fleet is doing. Inward: throughput is metered before the broker commits to the work, the metrics surface is one you can actually build dashboards on, and — in Professional Edition — every dropped message now carries the client, topic, and reason behind it.
+TBMQ 2.4 pushes the broker outward and inward at once. Outward: Sparkplug 3.0 awareness makes TBMQ a first-class citizen in industrial deployments, and client lifecycle events give the rest of your platform a live feed of what the fleet is doing. Inward: the metrics surface is one you can actually build dashboards on, and — in Professional Edition — every dropped message now carries the client, topic, and reason behind it.
 
 For the complete list of changes, see the [Community Edition release notes](https://tbmq.io/docs/releases/#v240-august-27-2026) and the [Professional Edition release notes](https://tbmq.io/docs/pe/releases/#v240PE).
 
