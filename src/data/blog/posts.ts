@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { BLOG_AUTHORS, type BlogAuthor } from '@data/blog/authors';
 
 export type BlogPost = CollectionEntry<'blog'>;
 
@@ -13,4 +14,15 @@ export async function getSortedBlogPosts(
 ): Promise<BlogPost[]> {
 	const posts = await getCollection('blog', filter);
 	return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+}
+
+/**
+ * Authors that have at least one published post. `BLOG_AUTHORS` keeps every
+ * byline ever used so old posts still resolve, but an author landing page
+ * (and its OG card) only makes sense when there is something to list.
+ */
+export async function getAuthorsWithPosts(): Promise<BlogAuthor[]> {
+	const posts = await getCollection('blog');
+	const authorSlugs = new Set(posts.map((post) => post.data.author));
+	return BLOG_AUTHORS.filter((author) => authorSlugs.has(author.slug));
 }
