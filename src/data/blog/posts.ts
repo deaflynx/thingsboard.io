@@ -17,9 +17,12 @@ export async function getSortedBlogPosts(
 }
 
 /**
- * Authors that have at least one published post. `BLOG_AUTHORS` keeps every
- * byline ever used so old posts still resolve, but an author landing page
- * (and its OG card) only makes sense when there is something to list.
+ * Authors from `BLOG_AUTHORS` that are the byline of at least one post.
+ *
+ * `BLOG_AUTHORS` is the full byline roster and can outlive the posts it was
+ * written for — entries whose posts were removed or moved to another site stay
+ * behind, so mapping it directly would build author landing pages with nothing
+ * to list. Route enumerators filter through here instead.
  */
 export async function getAuthorsWithPosts(): Promise<BlogAuthor[]> {
 	const posts = await getCollection('blog');
