@@ -6,18 +6,18 @@ import { Steps, Aside } from '@astrojs/starlight/components';
 
 Location actions capture a position and write it directly to an entity — no rule chain and no custom JavaScript required. You configure a target entity and a set of data keys once, and the platform saves latitude, longitude and the other location fields under those keys as server attributes or time series.
 
-Three actions are available, and all of them share the same target-entity and key configuration.
+<Aside type="note" title="The app's tracking page is hidden by default">
+  Live tracking works without it — a session started from a dashboard action runs and saves either way. To let users open the **Live location tracking** page in the app, enable it in the bundle's <DocLink product={props.product} path="user-guide/mobile-app-center/#layout">Layout</DocLink> step: turn on **Show hidden pages**, then switch the page on. See the <a href="/docs/mobile/pe/live-location-tracking/" target="_blank"><b>Live location tracking</b></a> guide for what the page shows.
+</Aside>
 
 ## Available actions
 
 | Action | Action type | Runs in | Saves |
 |---|---|---|---|
 | [Save browser location](#save-browser-location) | Widget action | Any widget, in a web browser | One position, read from the browser when the action is triggered |
-| [Get phone location](#get-phone-location) | Mobile action | ThingsBoard Mobile Application | One position, read from the phone. Saving is optional and off by default |
-| [Start live location tracking](#start-live-location-tracking) | Mobile action | ThingsBoard Mobile Application | A stream of positions until the session ends |
-| [Stop live location tracking](#stop-live-location-tracking) | Mobile action | ThingsBoard Mobile Application | Nothing — ends the running tracking session |
-
-**Save browser location** is an entry in the **Type** drop-down of the <DocLink product={props.product} path="user-guide/actions/#add-action">Add action</DocLink> dialog. The other three are **Mobile action types** — you select **Mobile action** as the type first, then pick the mobile action type.
+| [Get phone location](#get-phone-location) | **Mobile action** | ThingsBoard Mobile Application | One position, read from the phone. Saving is optional and off by default |
+| [Start live location tracking](#start-live-location-tracking) | **Mobile action** | ThingsBoard Mobile Application | A stream of positions until the session ends |
+| [Stop live location tracking](#stop-live-location-tracking) | **Mobile action** | ThingsBoard Mobile Application | Nothing — ends the running tracking session |
 
 <Aside type="note">
   Mobile actions only do something inside the ThingsBoard Mobile Application. On a web dashboard they are not triggered. **Save browser location** is the opposite: it runs in the browser and never involves the mobile app.
@@ -25,11 +25,13 @@ Three actions are available, and all of them share the same target-entity and ke
 
 ---
 
-## Target entity
+## Configuration
+
+The **Target** panel and the [Keys that are saved to entity](#saved-keys) table are configured the same way in every action that writes a position. [Accuracy](#accuracy) and [Session limits](#session-limits) are available in **Start live location tracking** only.
 
 Every location action writes to exactly one entity, configured in the **Target** panel. The panel has two modes, selected with the toggle in its top-right corner.
 
-### Entity
+### Target entity
 
 The target is the entity itself. Pick it in the **Save to** drop-down:
 
@@ -39,7 +41,7 @@ The target is the entity itself. Pick it in the **Save to** drop-down:
 | **Current user** | The user account that triggered the action |
 | **Entity alias** | The entity resolved from a dashboard <DocLink product={props.product} path="user-guide/aliases">entity alias</DocLink>. Enter its name in **Alias name** |
 
-### From attribute
+### Target from attribute
 
 The target is not the entity itself, but an entity whose id is stored in a server attribute of it. Use this when the widget shows one entity but the location belongs to another — for example, a technician's dashboard row pointing at the vehicle assigned to them.
 
@@ -66,31 +68,53 @@ A plain id string is not accepted.
   An alias that resolves to no entity fails the action with an explicit error.
 </Aside>
 
----
-
-## Saved keys
+### Saved keys
 
 The **Keys that are saved to entity** table maps each location field to a **Data key** name and a **Type** — **Server attribute** or **Time series**.
 
-| Field | Default data key | Default type | Save browser location | Get phone location | Start live location tracking |
-|---|---|---|---|---|---|
-| **Latitude** | `latitude` | Server attribute | Mandatory | Mandatory | Mandatory |
-| **Longitude** | `longitude` | Server attribute | Mandatory | Mandatory | Mandatory |
-| **Accuracy** | `gpsAccuracy` | Time series | Available | Available | Available |
-| **Altitude** | `gpsAltitude` | Time series | — | — | Available |
-| **Speed** | `gpsSpeed` | Time series | — | — | Available |
-| **Heading** | `gpsHeading` | Time series | — | — | Available |
-| **GPS active** | `gpsActive` | Server attribute | — | — | Available |
-| **GPS tracked by user** | `gpsTrackedBy` | Server attribute | — | — | Available |
+| Field | Default data key | Default type | Required |
+|---|---|---|---|
+| **Latitude** | `latitude` | Server attribute | Yes |
+| **Longitude** | `longitude` | Server attribute | Yes |
+| **Accuracy** | `gpsAccuracy` | Time series | No |
+| **Altitude** | `gpsAltitude` | Time series | No |
+| **Speed** | `gpsSpeed` | Time series | No |
+| **Heading** | `gpsHeading` | Time series | No |
+| **GPS active** | `gpsActive` | Server attribute | No |
+| **GPS tracked by user** | `gpsTrackedBy` | Server attribute | No |
 
-A new action starts with **Latitude** and **Longitude** only. Add the rest with **Add key**, and remove any optional key with the bin icon. Latitude and longitude cannot be removed, and data keys must be unique within one action.
+A new action starts with **Latitude** and **Longitude** only. Add the rest with **Add key**, and remove any optional key with the bin icon. Latitude and longitude cannot be removed, and data keys must be unique within one action. **Altitude**, **Speed**, **Heading**, **GPS active** and **GPS tracked by user** can only be added to a **Start live location tracking** action.
 
 Rename a data key whenever the target entity already uses a different convention — a map widget reading `lat` and `lng`, for example. Choosing **Time series** instead of **Server attribute** keeps the full history of a value rather than only its latest state, which is what you want for a track you intend to plot.
 
 <Aside type="tip" title="gpsActive and gpsTrackedBy are session status, not position">
-  These two keys are not written per fix. The mobile app writes `gpsActive` as `true` when a tracking session starts and `false` when it ends, and `gpsTrackedBy` records the user who started it. That makes them useful for a dashboard indicator showing which assets are currently being tracked, and by whom.
+  These two keys are not written per fix. `gpsActive` tracks whether positions are actually flowing: the mobile app writes `true` when a session starts or resumes, and `false` when it is paused or ends — so a paused session reads as inactive rather than as tracking. `gpsTrackedBy` records the user who started it. Together they make a dashboard indicator showing which assets are reporting a position right now, and by whom.
+</Aside>
 
-  Because they carry no position, a **Start live location tracking** action configured with *only* these two keys is rejected by the mobile app — it would hold the GPS stream open and save nothing.
+### Accuracy
+
+Available in **Start live location tracking** only, under **Advanced settings**. **Accuracy** is the trade-off between how precise each position is and how much battery tracking consumes.
+
+| Accuracy | Best for |
+|---|---|
+| **High** | Vehicle or field-worker tracking. Drains the battery fastest |
+| **Balanced** *(default)* | Periodic check-ins at moderate battery cost |
+| **Low** | Long-running background presence, with minimal battery use |
+
+### Session limits
+
+Available in **Start live location tracking** only, under **Advanced settings**. Each limit has its own toggle; the value field and its **Units** drop-down appear only once the toggle is on.
+
+| Field | Limit | Effect |
+|---|---|---|
+| **Distance** | Limit updates by travelled distance | Skips updates until the device has moved at least this far from the previously reported position |
+| **Interval** | Limit updates by time interval | Requests a new position no more often than this. Without it, updates arrive as fast as the device reports them |
+| **Duration** | Stop tracking after a maximum duration | Tracking stops by itself once this much time has passed since it started |
+
+Leaving every limit off means the app reports positions as fast as the device produces them and keeps the session running until someone stops it — accurate, and the most expensive option for the battery.
+
+<Aside type="tip">
+  Set a maximum duration on any action a field user triggers. It is the only limit that guarantees the session ends without the user returning to the app, and the reason it ended is recorded in the session history.
 </Aside>
 
 ---
@@ -103,7 +127,7 @@ Reads the browser's geolocation once when the action is triggered and saves it t
 1. Open the widget in edit mode, go to the **Actions** tab, and click **+**.
 2. Select the action source, enter a name, and choose an icon.
 3. Select **Save browser location** as the action type.
-4. Configure the **Target** panel and the **Keys that are saved to entity** table.
+4. Configure the [Target](#configuration) panel and the [Keys that are saved to entity](#saved-keys) table.
 5. Click **Add**, then **Apply** to save the widget settings.
 6. Click **Save** in the dashboard toolbar.
 </Steps>
@@ -134,13 +158,11 @@ An existing mobile action that reads the phone's current position and passes it 
 1. Open the widget in edit mode, go to the **Actions** tab, and click **+**.
 2. Select the action source, enter a name, and choose an icon.
 3. Select **Mobile action** as the type, then **Get phone location** as the mobile action type.
-4. Turn on **Save location to entity**, then configure the **Target** panel and the **Keys that are saved to entity** table.
+4. Turn on **Save location to entity**, then configure the [Target](#configuration) panel and the [Keys that are saved to entity](#saved-keys) table.
 5. Click **Add**, then **Apply**, then **Save** in the dashboard toolbar.
 </Steps>
 
 With the toggle off the action behaves exactly as before — the coordinates reach your **processLocation** function and nothing is written. Existing actions are unaffected by the upgrade.
-
-With the toggle on, the platform saves the position first and then calls the function, which now receives a third argument, `saveInfo`, holding the target entity name. The function runs only after a **successful** save; a failed save goes to the error handler instead. Switching the toggle replaces the default function body with the matching one, so any customisation you made is preserved only if you edited it.
 
 ---
 
@@ -152,36 +174,10 @@ Hands a fully resolved configuration to the ThingsBoard Mobile Application, whic
 1. Open the widget in edit mode, go to the **Actions** tab, and click **+**.
 2. Select the action source, enter a name, and choose an icon.
 3. Select **Mobile action** as the type, then **Start live location tracking** as the mobile action type.
-4. Configure the **Target** panel and the **Keys that are saved to entity** table.
-5. Expand **Advanced settings** to set the accuracy and the session limits. All three limits are off by default.
+4. Configure the [Target](#configuration) panel and the [Keys that are saved to entity](#saved-keys) table.
+5. Expand **Advanced settings** to set the [accuracy](#accuracy) and the [session limits](#session-limits). All three limits are off by default.
 6. Click **Add**, then **Apply**, then **Save** in the dashboard toolbar.
 </Steps>
-
-### Accuracy
-
-**Accuracy** is the trade-off between how precise each position is and how much battery tracking consumes.
-
-| Accuracy | Typical error | How the position is obtained | Best for |
-|---|---|---|---|
-| **High** | around 5 m | GPS | Vehicle or field-worker tracking. Drains the battery fastest |
-| **Balanced** *(default)* | around 40 m | Wi-Fi and cell towers, falling back to GPS only when needed | Periodic check-ins at moderate battery cost |
-| **Low** | around 500 m or worse | Cell towers only | City-level presence over long periods, with minimal battery use |
-
-### Session limits
-
-Each limit has its own toggle; the numeric field appears only once the toggle is on.
-
-| Limit | Default | Minimum | Effect |
-|---|---|---|---|
-| **Limit updates by travelled distance** | 10 m | 1 m, whole numbers only | Skips updates until the device has moved at least this far from the previously reported position. The value accepts a unit — **m**, **km**, **ft** or **mi** — and is stored in meters |
-| **Limit updates by time interval** | 30 seconds | 1 second | Requests a new position no more often than this. Without it, updates arrive as fast as the device reports them |
-| **Stop tracking after a maximum duration** | 1 hour | 1 minute | Tracking stops by itself once this much time has passed since it started |
-
-Leaving every limit off means the app reports positions as fast as the device produces them and keeps the session running until someone stops it — accurate, and the most expensive option for the battery.
-
-<Aside type="tip">
-  Set a maximum duration on any action a field user triggers. It is the only limit that guarantees the session ends without the user returning to the app, and the reason it ended is recorded in the session history.
-</Aside>
 
 ---
 
@@ -199,38 +195,3 @@ Ends the tracking session currently running in the mobile app. It has no target 
 A session can also be stopped from the app itself, so a stop action on the dashboard is a convenience rather than a requirement.
 
 Both live tracking actions come with a default result-handler function that shows a confirmation dialog. The function receives `launched` — whether the session actually started or stopped — and, for the start action, `trackingInfo` with the target entity name. Replace the body with your own logic, or empty it to show nothing.
-
----
-
-## Make the tracking page visible in the app
-
-The mobile app's **Live location tracking** page is **hidden by default**. It appears in the app's navigation only when the page is added to the mobile bundle layout:
-
-<Steps>
-1. Go to **Mobile Center** → **Bundles** in the left main menu and open the bundle your app uses.
-2. Open the **Layout** step and click **+ Add specific page**.
-3. Enter a name, select the **Custom** page type, and choose **Live location tracking**.
-4. Click **Add**, then save the bundle.
-</Steps>
-
-See <DocLink product={props.product} path="user-guide/mobile-app-center">Mobile Center</DocLink> for the full layout reference, and the <a href="/docs/mobile/pe/live-location-tracking/" target="_blank"><b>Live location tracking</b></a> guide for what the page shows and how a session behaves on the phone.
-
-Tracking still works without the page — a session started from a dashboard action runs and saves either way, and the tracking bar appears across the app while it does. The page is what gives users the session details, the last-session summary, and a **Start again** button.
-
----
-
-## Configuration errors
-
-These errors surface when an action is triggered and its target cannot be resolved. All of them are configuration problems rather than transient failures.
-
-| Message | What to check |
-|---|---|
-| Widget action has no current entity | **Entity from widget datasource** was selected, but the action source provides no entity. Pick a different source, or trigger the action from a widget row or marker |
-| Unable to determine the current user | The current user could not be read from the session |
-| Entity alias `'<alias>'` not found in the dashboard | The **Alias name** does not match any alias on this dashboard. Alias names are case-sensitive |
-| Entity alias `'<alias>'` did not resolve to an entity | The alias exists but its filter currently matches nothing |
-| Attribute `'<key>'` not found on the source entity | **From attribute** mode — the source entity has no server attribute with that key |
-| Attribute `'<key>'` is not an Entity Id object | The attribute holds something other than an object with `entityType` and `id`, such as a plain id string |
-| Attribute `'<key>'` is missing the entityType or id field | The object is present but incomplete |
-| Attribute `'<key>'` refers to unknown entity type | The `entityType` value is not a ThingsBoard entity type |
-| Permission denied | The user's <DocLink product={props.product} path="user-guide/roles">role</DocLink> does not allow writing attributes or time series on the target entity. Retrying will not help until access is granted |

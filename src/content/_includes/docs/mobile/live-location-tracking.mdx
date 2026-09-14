@@ -1,4 +1,3 @@
-import DocLink from '@components/DocLink.astro';
 import Banner from '@components/Banner.astro';
 import { Steps, Aside } from '@astrojs/starlight/components';
 
@@ -7,6 +6,10 @@ import { Steps, Aside } from '@astrojs/starlight/components';
 Live location tracking turns the phone into a moving sensor. A dashboard widget action starts a session; the app then streams GPS fixes — including while it is in the background — and writes each one to a ThingsBoard entity as attributes or time series.
 
 Typical uses are field-worker check-ins, delivery routes, and any case where the thing you want to track is a person carrying a phone rather than a device with its own modem.
+
+<Aside type="note" title="The tracking page is hidden by default">
+  Tracking works without it — a session started from a dashboard action runs and saves either way, and the tracking bar still appears. To let users open the page, turn on **Show hidden pages** in the bundle's <a href="/docs/pe/user-guide/mobile-app-center/#layout" target="_blank"><b>Layout</b></a> step and enable **Live location tracking**. The page is what gives users session details, the last-session summary, and a **Start again** button.
+</Aside>
 
 ## How a session works
 
@@ -22,46 +25,26 @@ Everything the session does — which entity it writes to, which data keys it us
 
 ---
 
-## Add the tracking page to your app
-
-The **Live location tracking** page is **hidden by default** and opt-in per mobile bundle. Add it to the bundle layout to make it appear in the app's navigation bar or under **More**:
-
-<Steps>
-1. In ThingsBoard, go to **Mobile Center** → **Bundles** and open the bundle your app uses.
-2. Open the **Layout** step and click **+ Add specific page**.
-3. Enter a name, select the **Custom** page type, and choose **Live location tracking** (route `/liveTracking`).
-4. Click **Add**, then save the bundle.
-</Steps>
-
-See <DocLink product={props.product} path="customization">Mobile application customization</DocLink> for the full layout reference.
-
-<Aside type="note">
-  Tracking works without the page. A session started from a dashboard action runs and saves either way, and the tracking bar still appears. The page is what gives users session details, the last-session summary, and a **Start again** button.
-</Aside>
-
----
-
 ## The tracking bar
 
-While a session runs, a full-width pulsing bar sits across the top of the app, on every page. It shows the session state and three counters:
+While a session runs, a bar sits across the top of the app on every main page. Tap it to open the tracking page.
 
 | Element | Meaning |
 |---|---|
 | **Live location tracking** / **Live tracking paused** | Current session state |
 | **Fixes** | Positions received from the device |
 | **Saved** | Positions successfully written to the target entity |
-| **Errors** | Saves that failed |
+| **Errors** | Saves that failed. Appears only once at least one save has failed |
 
 A gap between **Fixes** and **Saved** is the quickest signal that something is wrong with saving rather than with the GPS.
 
-The bar has four controls:
+The bar has three buttons:
 
 | Control | Effect |
 |---|---|
-| **Pause** | Stops requesting positions and stops saving, but keeps the session open. `gpsActive` stays `true` |
-| **Resume** | Restarts the position stream in the same session |
+| **Pause** / **Resume** | One button that suspends and resumes position updates without ending the session. Pausing writes `gpsActive` as `false`, resuming writes it back as `true` |
 | **Stop** | Ends the session and writes `gpsActive` as `false` |
-| **Hide** | Dismisses the bar only. The session keeps running |
+| **Hide** | Collapses the bar to a thin strip with a pulsing icon. Tap the strip to bring the bar back — the session keeps running |
 
 <Aside type="caution">
   **Hide** does not stop tracking. To end a session, use **Stop** — from the bar or from the tracking page — or trigger a **Stop live location tracking** widget action.
@@ -112,14 +95,9 @@ If a user denies the permission permanently, the app cannot re-prompt — the me
 
 ## What gets saved
 
-Each fix is written to the target entity under the data keys configured in the widget action — by default `latitude` and `longitude` as server attributes, and `gpsAccuracy`, `gpsAltitude`, `gpsSpeed`, `gpsHeading` as time series.
+Each fix is written to the target entity under the data keys configured in the widget action. `gpsActive` and `gpsTrackedBy` are the exception: they describe the session rather than a position, so they are written whenever its state changes — start, pause, resume and stop — rather than once per fix.
 
-Two keys are not per-fix values:
-
-- **`gpsActive`** — written `true` when the session starts and `false` when it ends.
-- **`gpsTrackedBy`** — the user who started the session.
-
-Together they let a dashboard show which assets are being tracked right now, and by whom, without reading position data at all.
+For the full list of fields, their default data key names and whether each is saved as a server attribute or time series, see <a href="/docs/pe/user-guide/location-tracking/#saved-keys" target="_blank"><b>Saved keys</b></a>.
 
 ---
 
@@ -137,7 +115,7 @@ Logging out stops an active session and clears the stored last-session record.
 
 ---
 
-## Messages you may see
+## Error messages
 
 Save failures do **not** end the session. The app keeps tracking and retries with the next fix, so a tunnel or a dropped connection costs you a few points rather than the whole session.
 
@@ -152,11 +130,3 @@ Save failures do **not** end the session. The app keeps tracking and retries wit
 | Location permission was denied | Grant the app location permission |
 | Location permission is permanently denied | Enable it in the app settings — the app can no longer prompt |
 | Couldn't get a location fix | The device could not determine a position |
-
----
-
-## Limitations
-
-- Fixes are **not queued while offline**. A failed save is reported and saving resumes with the next fix — the positions taken during the outage are not backfilled.
-- Android foreground-service and paused-notification text is English only in this version.
-- The tracking configuration lives entirely in the widget action. To change the accuracy, the limits, or the target entity, edit the action on the dashboard and start a new session.
