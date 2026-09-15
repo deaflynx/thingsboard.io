@@ -101,19 +101,21 @@ Set up quick access to the dashboards and features you use most. Add menu items,
   { src: '/src/assets/images/user-guide/mobile-app-center/mobile-layout-2.png', alt: 'Layout step with menu items and + Add specific page buttons visible', caption: 'Reorder items or add new pages using the + Add specific page buttons.' },
 ]} />
 
-The list opens on the default menu items. A few of them are hidden: they belong to the bundle but stay out of the app's navigation until you switch them on. Turn on **Show hidden pages** above the list to reveal them, then use the item's own toggle to show it in the app.
+The list opens on the default menu items, with **Show hidden pages** already switched on. A few items arrive switched off: they belong to the bundle but stay out of the app's navigation until you turn on the toggle at the left of the row.
 
 <ShowFor product={props.product} show={[Products.CE]}>
 
-**Device list** and **Dashboards** are hidden by default.
+**Device list** and **Dashboards** are switched off by default.
 
 </ShowFor>
 
 <ShowFor product={props.product} show={[Products.PE, Products.PAAS, Products.PAAS_EU]}>
 
-**Device list**, **Dashboards** and **Live location tracking** are hidden by default.
+**Device list**, **Dashboards** and **Live location tracking** are switched off by default.
 
 </ShowFor>
+
+**Show hidden pages** changes only what this list displays, never what the app shows. **Hide all pages** switches every item off and turns that toggle off with them, so switch it back on to bring the hidden items into view.
 
 To add a new menu item:
 
@@ -161,7 +163,7 @@ The following routes are available for the **Custom** page type:
     <td>Displays the Device profiles page</td>
   </tr>
   <tr>
-    <td>All devices</td>
+    <td>Device list</td>
     <td><code>/deviceList</code></td>
     <td>Displays the list of all devices</td>
   </tr>
