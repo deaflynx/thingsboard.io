@@ -60,7 +60,7 @@ A session can also enter the paused state on its own, when location becomes unav
 
 | Field | Shows |
 |---|---|
-| **Save location to entity** | The target entity. Tap it to open its device profile dashboard |
+| **Save location to entity** | The target entity. A device, asset or customer is a link — a device opens its profile dashboard, an asset or a customer its details page. Any other entity type is shown as plain text |
 | **Dashboard** | The dashboard the session was started from. Tap it to go back |
 | **Status** | Tracking or paused |
 | **Start time** | When the session started |
@@ -95,7 +95,7 @@ If a user denies the permission permanently, the app cannot re-prompt — the me
 
 ## What gets saved
 
-Each fix is written to the target entity under the data keys configured in the widget action. `gpsActive` and `gpsTrackedBy` are the exception: they describe the session rather than a position, so they are written whenever its state changes — start, pause, resume and stop — rather than once per fix.
+Each fix is written to the target entity under the data keys configured in the widget action. `gpsActive` and `gpsTrackedBy` are the exception: they describe the session rather than a position, so neither is written per fix. `gpsActive` is written whenever the session state changes — start, pause, resume and stop. `gpsTrackedBy` is written alongside it when tracking starts or resumes.
 
 For the full list of fields, their default data key names and whether each is saved as a server attribute or time series, see <a href="/docs/pe/user-guide/location-tracking/#saved-keys" target="_blank"><b>Saved keys</b></a>.
 
@@ -121,7 +121,7 @@ Save failures do **not** end the session. The app keeps tracking and retries wit
 
 | Message | What it means |
 |---|---|
-| Can't save to this entity — it no longer exists | The target entity was deleted. Tracking continues; update the target in the dashboard action |
+| Can't save to this entity — it no longer exists | The target entity was deleted. Tracking continues, but nothing is saved. A session keeps the target it started with, so update the dashboard action, then stop the session and start a new one |
 | No connection to the server | These fixes were not saved. Saving resumes when the device is back online |
 | Your session ended | The login session expired. Sign in again to keep saving location |
 | Can't save to this entity — you don't have permission | Your <a href="/docs/pe/user-guide/roles/" target="_blank"><b>role</b></a> does not allow writing to the target entity. Tracking continues, but nothing is saved until an administrator grants access |

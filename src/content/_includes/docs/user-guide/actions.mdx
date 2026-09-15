@@ -1017,7 +1017,8 @@ Triggers a native mobile capability on the user's device when the action button 
 
 <ShowFor product={props.product} show={[Products.PE, Products.PAAS, Products.PAAS_EU]}>
 
-- **Start live location tracking** / **Stop live location tracking** — runs a background GPS session that streams the phone's position to an entity until it is stopped.
+- **Start live location tracking** — starts a background GPS session that streams the phone's position to an entity until the session ends.
+- **Stop live location tracking** — ends the session that is currently running. It never starts one.
 
 **Get phone location** can also save its result to an entity directly, without a custom function. See <DocLink product={props.product} path="user-guide/location-tracking">Location tracking</DocLink> for the target-entity and data-key configuration shared by all of these.
 

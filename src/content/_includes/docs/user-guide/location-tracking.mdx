@@ -43,11 +43,11 @@ The target is the entity itself. Pick it in the **Save to** drop-down:
 
 ### Target from attribute
 
-The target is not the entity itself, but an entity whose id is stored in a server attribute of it. Use this when the widget shows one entity but the location belongs to another — for example, a technician's dashboard row pointing at the vehicle assigned to them.
+The target is not the entity itself, but a second entity, whose id is stored in a server attribute of the first. Use this when the widget shows one entity but the location belongs to another — for example, a technician's dashboard row pointing at the vehicle assigned to them.
 
 <Steps>
 1. Switch the **Target** toggle to **From attribute**.
-2. In **Read attribute from**, choose the entity that holds the attribute — **Entity from widget datasource**, **Current user**, or **Entity alias**.
+2. In **Read attribute from**, choose the entity that holds the attribute — **Entity from widget datasource**, **Current user**, or **Entity alias**. For **Entity alias**, enter its name in **Alias name**.
 3. In **Server attribute key**, enter the attribute name.
 </Steps>
 
@@ -95,21 +95,21 @@ Rename a data key whenever the target entity already uses a different convention
 
 Available in **Start live location tracking** only, under **Advanced settings**. **Accuracy** is the trade-off between how precise each position is and how much battery tracking consumes.
 
-| Accuracy | Best for |
-|---|---|
-| **High** | Vehicle or field-worker tracking. Drains the battery fastest |
-| **Balanced** *(default)* | Periodic check-ins at moderate battery cost |
-| **Low** | Long-running background presence, with minimal battery use |
+| Accuracy | How a position is obtained | Best for |
+|---|---|---|
+| **High** | GPS — around 5 m | Vehicle or field-worker tracking. Drains the battery fastest |
+| **Balanced** *(default)* | Wi-Fi and cell towers, falling back to GPS only when needed — around 40 m | Periodic check-ins at moderate battery cost |
+| **Low** | Cell towers only — around 500 m or worse | City-level presence over long periods, with minimal battery use |
 
 ### Session limits
 
 Available in **Start live location tracking** only, under **Advanced settings**. Each limit has its own toggle; the value field and its **Units** drop-down appear only once the toggle is on.
 
-| Field | Limit | Effect |
-|---|---|---|
-| **Distance** | Limit updates by travelled distance | Skips updates until the device has moved at least this far from the previously reported position |
-| **Interval** | Limit updates by time interval | Requests a new position no more often than this. Without it, updates arrive as fast as the device reports them |
-| **Duration** | Stop tracking after a maximum duration | Tracking stops by itself once this much time has passed since it started |
+| Field | Limit | Minimum | Effect |
+|---|---|---|---|
+| **Distance** | Limit updates by travelled distance | 1 meter | Skips updates until the device has moved at least this far from the previously reported position |
+| **Interval** | Limit updates by time interval | 1 second | Requests a new position no more often than this. Without it, updates arrive as fast as the device reports them |
+| **Duration** | Stop tracking after a maximum duration | 1 minute | Tracking stops by itself once this much time has passed since it started |
 
 Leaving every limit off means the app reports positions as fast as the device produces them and keeps the session running until someone stops it — accurate, and the most expensive option for the battery.
 

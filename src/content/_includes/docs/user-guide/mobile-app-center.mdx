@@ -4,6 +4,7 @@ import { Products } from '~/models/site.models';
 import ImageGallery from '~/components/ImageGallery.astro';
 import MultiProductImageGallery from '~/components/MultiProductImageGallery.astro';
 import ConditionalHeading from '~/components/ConditionalHeading.astro';
+import ShowFor from '@components/ShowFor.astro';
 
 The **Mobile App Center** is a hub for building, configuring, and managing mobile apps in ThingsBoard. Whether you are starting from scratch or publishing the ThingsBoard Mobile Application to Google Play or the App Store, this tool guides you through every step.
 
@@ -100,6 +101,20 @@ Set up quick access to the dashboards and features you use most. Add menu items,
   { src: '/src/assets/images/user-guide/mobile-app-center/mobile-layout-2.png', alt: 'Layout step with menu items and + Add specific page buttons visible', caption: 'Reorder items or add new pages using the + Add specific page buttons.' },
 ]} />
 
+The list opens on the default menu items. A few of them are hidden: they belong to the bundle but stay out of the app's navigation until you switch them on. Turn on **Show hidden pages** above the list to reveal them, then use the item's own toggle to show it in the app.
+
+<ShowFor product={props.product} show={[Products.CE]}>
+
+**Device list** and **Dashboards** are hidden by default.
+
+</ShowFor>
+
+<ShowFor product={props.product} show={[Products.PE, Products.PAAS, Products.PAAS_EU]}>
+
+**Device list**, **Dashboards** and **Live location tracking** are hidden by default.
+
+</ShowFor>
+
 To add a new menu item:
 
 <Steps>
@@ -188,7 +203,7 @@ The following routes are available for the **Custom** page type:
   {[Products.PE, Products.PAAS, Products.PAAS_EU].includes(props.product) &&(<tr>
     <td>Live location tracking</td>
     <td><code>/liveTracking</code></td>
-    <td>Displays the GPS tracking session page. Hidden by default</td>
+    <td>Displays the GPS tracking session page</td>
   </tr>)}
   <tr>
     <td>Custom URL link</td>
@@ -215,7 +230,7 @@ The number of menu items displayed in the bottom navigation menu depends on the 
 
 {props.product !== Products.CE && (<>
 
-<ConditionalHeading level={3} id="self-registration" showFor="pe, paas, paas/eu">Self-Registration</ConditionalHeading>
+<ConditionalHeading level={3} id="self-registration" showFor="pe,paas,paas-eu">Self-Registration</ConditionalHeading>
 
 <p>The <strong>self-registration</strong> feature lets tenants set up a public sign-up page where clients can register and access ThingsBoard with predefined roles and permissions.</p>
 
