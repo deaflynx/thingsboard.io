@@ -1,5 +1,6 @@
 import { Aside, Code } from '@astrojs/starlight/components';
 import HostCode from '~/components/HostCode.astro';
+import { DART_CLIENT_VER } from '@data/versions';
 import { Products } from '~/models/site.models';
 
 export const clientPackage = (product) =>
@@ -11,7 +12,7 @@ export const clientPackage = (product) =>
 
 export const clientEdition = (product) => clientPackage(product).replace('thingsboard_', '').replace('_client', '');
 
-export const clientVersion = (product) => (clientEdition(product) === 'ce' ? '4.3.0' : '4.4.0');
+export const clientVersion = (product) => DART_CLIENT_VER[clientEdition(product)];
 
 The Dart ThingsBoard API Client lets Dart and Flutter applications manage ThingsBoard entities, work with telemetry, and receive real-time updates over WebSocket.
 It is auto-generated from the ThingsBoard OpenAPI specification, so every REST endpoint and model of the platform is available as a typed API class.
@@ -21,9 +22,9 @@ The client is published as one package per ThingsBoard edition. Each package ver
 
 | Package | Edition | Version |
 |---|---|---|
-| [thingsboard_ce_client](https://pub.dev/packages/thingsboard_ce_client) | Community Edition | 4.3.0 |
-| [thingsboard_pe_client](https://pub.dev/packages/thingsboard_pe_client) | Professional Edition | 4.4.0 |
-| [thingsboard_paas_client](https://pub.dev/packages/thingsboard_paas_client) | ThingsBoard Cloud | 4.4.0 |
+| [thingsboard_ce_client](https://pub.dev/packages/thingsboard_ce_client) | Community Edition | {DART_CLIENT_VER.ce} |
+| [thingsboard_pe_client](https://pub.dev/packages/thingsboard_pe_client) | Professional Edition | {DART_CLIENT_VER.pe} |
+| [thingsboard_paas_client](https://pub.dev/packages/thingsboard_paas_client) | ThingsBoard Cloud | {DART_CLIENT_VER.paas} |
 
 The examples on this page use <code>{clientPackage(props.product)}</code>. All three packages share the same runtime facade and usage patterns; they differ only in the set of API classes and models generated from each edition's REST API.
 
@@ -393,7 +394,7 @@ The `onError` constructor callback receives the same `ThingsboardError` for ever
 
 ## Migrating from the legacy client
 
-The auto-generated client (`thingsboard_ce_client` 4.3.0, `thingsboard_pe_client` and `thingsboard_paas_client` 4.4.0) replaces the hand-written [dart_thingsboard_client](https://github.com/thingsboard/dart_thingsboard_client) (`thingsboard_client`) and [dart_thingsboard_pe_client](https://github.com/thingsboard/dart_thingsboard_pe_client) (`thingsboard_pe_client`) packages, whose last release is 4.2.1.
+The auto-generated client (`thingsboard_ce_client` {DART_CLIENT_VER.ce}, `thingsboard_pe_client` {DART_CLIENT_VER.pe}, `thingsboard_paas_client` {DART_CLIENT_VER.paas}) replaces the hand-written [dart_thingsboard_client](https://github.com/thingsboard/dart_thingsboard_client) (`thingsboard_client`) and [dart_thingsboard_pe_client](https://github.com/thingsboard/dart_thingsboard_pe_client) (`thingsboard_pe_client`) packages, whose last release is 4.2.1.
 The main differences:
 
 | Legacy client (up to 4.2.1) | Auto-generated client |
