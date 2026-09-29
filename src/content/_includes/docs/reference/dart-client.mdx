@@ -11,17 +11,19 @@ export const clientPackage = (product) =>
 
 export const clientEdition = (product) => clientPackage(product).replace('thingsboard_', '').replace('_client', '');
 
+export const clientVersion = (product) => (clientEdition(product) === 'ce' ? '4.3.0' : '4.4.0');
+
 The Dart ThingsBoard API Client lets Dart and Flutter applications manage ThingsBoard entities, work with telemetry, and receive real-time updates over WebSocket.
 It is auto-generated from the ThingsBoard OpenAPI specification, so every REST endpoint and model of the platform is available as a typed API class.
 A handwritten runtime facade on top of the generated code handles JWT authentication with automatic token refresh, API key authentication, WebSocket telemetry subscriptions with auto-reconnect, and typed error handling.
 
-The client is published as one package per ThingsBoard edition:
+The client is published as one package per ThingsBoard edition. Each package version tracks the ThingsBoard server version it targets:
 
-| Package | Edition |
-|---|---|
-| [thingsboard_ce_client](https://pub.dev/packages/thingsboard_ce_client) | Community Edition |
-| [thingsboard_pe_client](https://pub.dev/packages/thingsboard_pe_client) | Professional Edition |
-| [thingsboard_paas_client](https://pub.dev/packages/thingsboard_paas_client) | ThingsBoard Cloud |
+| Package | Edition | Version |
+|---|---|---|
+| [thingsboard_ce_client](https://pub.dev/packages/thingsboard_ce_client) | Community Edition | 4.3.0 |
+| [thingsboard_pe_client](https://pub.dev/packages/thingsboard_pe_client) | Professional Edition | 4.4.0 |
+| [thingsboard_paas_client](https://pub.dev/packages/thingsboard_paas_client) | ThingsBoard Cloud | 4.4.0 |
 
 The examples on this page use <code>{clientPackage(props.product)}</code>. All three packages share the same runtime facade and usage patterns; they differ only in the set of API classes and models generated from each edition's REST API.
 
@@ -40,9 +42,9 @@ flutter pub add ${clientPackage(props.product)}`} />
 This adds to `pubspec.yaml`:
 
 <Code lang="yaml" code={`dependencies:
-  ${clientPackage(props.product)}: ^4.4.0`} />
+  ${clientPackage(props.product)}: ^${clientVersion(props.product)}`} />
 
-The client requires Dart SDK 3.2 or later and targets ThingsBoard 4.4.0 or later. It runs on Flutter mobile (iOS, Android), Flutter Web, and plain Dart.
+The client requires Dart SDK 3.2 or later and targets ThingsBoard {clientVersion(props.product)} or later. It runs on Flutter mobile (iOS, Android), Flutter Web, and plain Dart.
 
 Import the package in Dart code:
 
@@ -391,10 +393,10 @@ The `onError` constructor callback receives the same `ThingsboardError` for ever
 
 ## Migrating from the legacy client
 
-Version 4.4.0 is the first release of the auto-generated client. It replaces the hand-written [dart_thingsboard_client](https://github.com/thingsboard/dart_thingsboard_client) (`thingsboard_client`) and [dart_thingsboard_pe_client](https://github.com/thingsboard/dart_thingsboard_pe_client) (`thingsboard_pe_client`) packages, whose last release is 4.2.1.
+The auto-generated client (`thingsboard_ce_client` 4.3.0, `thingsboard_pe_client` and `thingsboard_paas_client` 4.4.0) replaces the hand-written [dart_thingsboard_client](https://github.com/thingsboard/dart_thingsboard_client) (`thingsboard_client`) and [dart_thingsboard_pe_client](https://github.com/thingsboard/dart_thingsboard_pe_client) (`thingsboard_pe_client`) packages, whose last release is 4.2.1.
 The main differences:
 
-| Legacy client (up to 4.2.1) | Auto-generated client (4.4.0 and later) |
+| Legacy client (up to 4.2.1) | Auto-generated client |
 |---|---|
 | `thingsboard_client` (CE), `thingsboard_pe_client` (PE) | `thingsboard_ce_client`, `thingsboard_pe_client`, `thingsboard_paas_client` |
 | Hand-written services: `tbClient.getDeviceService()` | One generated class per REST controller: `tbClient.getDeviceControllerApi()` |
@@ -403,7 +405,7 @@ The main differences:
 | Mutable models: `Device('name', 'default')` | Immutable `built_value` models: `Device((b) => b..name = 'name'..type = 'default')` |
 | `LoginRequest('user', 'password')` | `LoginRequest(userName: 'user', password: 'password')` from `src/model/login_models.dart` |
 | `saveEntityAttributesV2(entityId, scope, {...})` | `saveEntityAttributesV2(entityType: 'DEVICE', entityId: id, scope: 'SHARED_SCOPE', body: jsonEncode({...}))` |
-| Requires ThingsBoard 3.6.3 or later | Requires ThingsBoard 4.4.0 or later |
+| Requires ThingsBoard 3.6.3 or later | Requires ThingsBoard {clientVersion(props.product)} or later |
 
 The WebSocket layer (`TelemetrySubscriber`, subscription commands and streams) and the `ThingsboardError` type are carried over from the legacy client and work the same way.
 
