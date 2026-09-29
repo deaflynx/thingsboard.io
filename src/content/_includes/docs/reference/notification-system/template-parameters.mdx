@@ -1,5 +1,4 @@
 import DocLink from '@components/DocLink.astro';
-import ConditionalHeading from '@components/ConditionalHeading.astro';
 import { Products } from '~/models/site.models';
 
 Each notification template has a **type** that determines which parameters are available. The type must match the trigger you plan to use it with — for example, an **Alarm** template can only be used in an alarm notification rule. For an overview of templates and rules, see <DocLink product={props.product === Products.EDGE_PE ? Products.PE : props.product === Products.EDGE ? Products.CE : props.product} path="user-guide/notifications">Notification center</DocLink>.
@@ -51,7 +50,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-## Device activity
+## Device Activity
 
 **When to use:** Notify operators when a device goes offline unexpectedly or comes back online. Useful for monitoring field devices with intermittent connectivity.
 
@@ -75,7 +74,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-## Entity action
+## Entity Action
 
 **When to use:** Audit trail notifications when entities (devices, assets, customers, users) are created, modified, or deleted. Useful for change control in large teams.
 
@@ -102,7 +101,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-## Alarm comment
+## Alarm Comment
 
 **When to use:** Keep the alarm owner or team in the loop when a colleague comments on an active alarm. Avoids the need to manually check the alarm timeline.
 
@@ -127,7 +126,7 @@ Includes all [Alarm](#alarm) parameters, plus:
 
 ---
 
-## Alarm assignment
+## Alarm Assignment
 
 **When to use:** Notify the assigned engineer when an alarm is routed to them, or notify the team when an alarm is unassigned.
 
@@ -156,7 +155,7 @@ Includes all [Alarm](#alarm) parameters, plus:
 
 ---
 
-## Rule engine lifecycle event
+## Rule Engine Lifecycle Event
 
 **When to use:** Alert developers or platform admins when a rule chain or node fails to start, typically due to misconfiguration after a deployment or update.
 
@@ -183,7 +182,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-## Rule node
+## Rule Node
 
 **When to use:** Build fully custom notifications from within a rule chain using the <DocLink product={props.product === Products.EDGE_PE ? Products.PE : props.product === Products.EDGE ? Products.CE : props.product} path="reference/rule-engine/nodes/external/send-notification">Send notification</DocLink> node. The message can include any field from the incoming message's data or metadata — for example, a telemetry reading or a calculated value.
 
@@ -207,10 +206,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-{props.product !== Products.CE && (
-<>
-
-<ConditionalHeading level={2} id="integration-lifecycle-event" exclude="ce">Integration lifecycle event</ConditionalHeading>
+## Integration Lifecycle Event
 
 **When to use:** Alert Tenant Administrators when a data integration fails to start or stops unexpectedly, typically due to misconfiguration or an unreachable external service.
 
@@ -237,10 +233,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-</>
-)}
-
-## Edge connection
+## Edge Connection
 
 **When to use:** Notify Tenant Administrators when an Edge instance connects or disconnects from the cloud, so they can respond to outages at remote sites.
 
@@ -260,7 +253,7 @@ Renders as: *Edge "Factory Floor A" connection status changed* / *Edge "Factory 
 
 ---
 
-## Edge communication failure
+## Edge Communication Failure
 
 **When to use:** Alert admins to specific failures during Edge synchronization, such as data sync errors or command delivery failures — distinct from a full disconnect.
 
@@ -280,7 +273,7 @@ Renders as: *Communication failure on Edge "Warehouse B"* / *Edge "Warehouse B" 
 
 ---
 
-## Entities limit
+## Entities Limit
 
 **When to use:** Warn Tenant Administrators before they hit their entity quota (devices, assets, etc.), giving them time to request a limit increase. Available to System Administrators only.
 
@@ -305,7 +298,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-## API usage limit
+## API Usage Limit
 
 **When to use:** Warn Tenant Administrators before they exhaust an API feature quota — for example, approaching the monthly alarm limit or message count. Available to System Administrators only.
 
@@ -331,7 +324,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-## New platform version
+## New Platform Version
 
 **When to use:** Inform System Administrators and Tenant Administrators when a new ThingsBoard release is available so they can plan upgrades. Available to System Administrators only.
 
@@ -355,7 +348,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-## Exceeded rate limits
+## Exceeded Rate Limits
 
 **When to use:** Alert System Administrators when a tenant or device is being throttled due to rate limit violations — useful for diagnosing data loss or connectivity issues. Available to System Administrators only.
 
@@ -380,7 +373,7 @@ Includes all [General](#general) parameters, plus:
 
 ---
 
-## Using parameters
+## Using Parameters
 
 Wrap any parameter name in `${...}` — for example, `${recipientFirstName}`. Apply a suffix after a colon to transform the value:
 

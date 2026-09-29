@@ -1,15 +1,15 @@
 import {
-	IOT_HUB_API_URL,
-	IOT_HUB_STRINGS,
-	SEARCH_PAGE_SIZE,
 	DEFAULT_IOT_HUB_SORT_ID,
 	getCardVariant,
 	getCategoryForItemType,
 	getIotHubSortOption,
+	IOT_HUB_API_URL,
+	IOT_HUB_STRINGS,
 	isNumericSlug,
-	resolvePreviewImage,
 	type ListingView,
 	type PageData,
+	resolvePreviewImage,
+	SEARCH_PAGE_SIZE,
 } from '@models/iot-hub';
 import { bindListingCard } from './iot-hub-listing-card-bind';
 import type { CardShape } from './listing-card-hooks';

@@ -124,7 +124,7 @@ export const tbPrivateCloudData: PrivateCloudData = {
 		},
 		{
 			name: 'Enterprise',
-			description: 'Tailored architecture, pricing, and SLAs to fit your business.',
+			description: 'Tailored architecture, pricing, and SLA to fit your business.',
 			price: null,
 			priceFaqId: 'tb-private-cloud-what-features-are-unique-to-the-enterprise-plan',
 			priceFaqTooltip: 'Enterprise pricing built around your scale. Share your devices, msg/min, and retention and we\u2019ll right-size the architecture and quote the best-fit package.',

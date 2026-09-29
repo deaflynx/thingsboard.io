@@ -1,0 +1,77 @@
+import DocLink from '@components/DocLink.astro';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Products } from '@models/site.models';
+import { SOURCE_AVAILABLE_FROM_VER } from '@data/versions';
+
+Registration is how an existing Community Edition deployment gets its free perpetual key under the
+[Community Grant Program](/community-grant-program/). It runs from inside the platform you are already
+running, and it has to happen **before** you upgrade: the key is what licenses ThingsBoard {SOURCE_AVAILABLE_FROM_VER},
+so without it there is nothing to upgrade into.
+
+<Aside type="caution">
+Register while you are still on Community Edition 4.3. The registration flow runs from inside a 4.3
+deployment, and the key it issues is what activates {SOURCE_AVAILABLE_FROM_VER} when you upgrade.
+</Aside>
+
+## Before you start
+
+Your deployment must be on the **latest 4.3 LTS patch**. Earlier versions cannot produce the report the
+registration flow needs. Follow the <DocLink product={Products.CE} path="installation/upgrade-instructions" target="_blank">Community Edition upgrade instructions</DocLink>
+if you are not there yet.
+
+## Register your deployment
+
+<Steps>
+
+1. **Open Community Grant registration.**
+
+   Sign in to ThingsBoard as a system administrator. On the **Home** page, click **Get your Community Grant** on the version card.
+
+2. **Review the grant and register the deployment.**
+
+   In the **Community Grant registration** dialog, review the grant details. Nothing on your deployment changes at this point. Click **Register this deployment**.
+
+3. **Sign in to the License Portal.**
+
+   The [License Portal](https://license.thingsboard.io/) opens in a new tab. Sign in with Google or with your email and password. If you don't have an account yet, click **New here? Create your account**. The grant is issued to this account.
+
+4. **Accept the grant terms.**
+
+   Select the checkbox to confirm that you are authorized to register this deployment for your organization, that it was running in production before the announcement date, and that you agree to the [Community Grant License Agreement](/legal/community-grant-license-agreement/). Click **Accept and continue**. Nothing is issued until you accept.
+
+5. **Wait for verification.**
+
+   The Portal verifies your deployment with a read-only check that produces one small encrypted report: entity counts, creation timestamps, table sizes, and your deployment's identifiers. It never includes telemetry values, device names, or dashboard contents, and your database is never uploaded.
+
+   The check runs on the deployment itself, so on a large database it can take a few minutes. The page updates on its own, whether you wait there or come back later.
+
+6. **Collect your license key.**
+
+   Most deployments are verified automatically and the perpetual grant key is issued straight away. Larger ones may need a short review.
+   If the grant is ready, the Portal shows **Your Community Grant is ready**, with the granted scale (devices, production servers, and edges) and your **License key**. Use **Show** to reveal the key or **Copy** to copy it. A copy is also emailed to your account address.
+
+   The key stays in your Portal account. Click **View your licenses** to return to it later or to register another deployment.
+
+7. **Confirm the registration in ThingsBoard.**
+
+   Back in ThingsBoard, the **Community Grant registration** dialog updates to **This deployment is registered**. Click **See what was granted** to open the grant in the License Portal, or **Close**.
+
+   If you closed the dialog before registration finished, the version card on the **Home** page shows **Registering this deployment**. Click **Continue** to reopen it.
+
+</Steps>
+
+<Aside type="tip" title="No internet access?">
+There is an offline path: download the read-only reporting tool from the License Portal on any connected
+machine, run it against your deployment, and submit the encrypted report through the Portal yourself.
+</Aside>
+
+## What happens next
+
+Your grant is calculated once, from the deployment you were running — your device count plus headroom, your
+production servers, and any branding you had already changed. It is perpetual, it does not expire, and there
+is no maintenance fee on it.
+
+With the key issued, you can upgrade whenever you are ready. Follow the
+<DocLink product={Products.PE} path="installation/upgrade-from-ce" target="_blank">upgrade from Community Edition</DocLink>
+guide and enter your license key when it asks for it. Your granted scale applies from that moment, so nothing
+you already run hits a limit.
